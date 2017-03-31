@@ -154,6 +154,10 @@ config MACH_SUN50I_H5
 
 endchoice
 
+config MACH_SUN8I_H5_NANOPI
+    bool "sun50i (Allwinner H5 Nanopi)"
+    default n
+
 # The sun8i SoCs share a lot, this helps to avoid a lot of "if A23 || A33"
 config MACH_SUN8I_H3_NANOPI
 	bool "sun8i (Allwinner H3 Nanopi)"

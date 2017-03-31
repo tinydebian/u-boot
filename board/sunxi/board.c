@@ -477,7 +477,7 @@ void i2c_init_board(void)
 }
 
 #ifdef CONFIG_SPL_BUILD
-#ifdef CONFIG_MACH_SUN8I_H3_NANOPI
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
 int nanopi_h3_spl_get_board(void)
 {
 	char pin_label[16];
@@ -499,6 +499,9 @@ int nanopi_h3_spl_get_board(void)
 			pin_value = gpio_get_value(id_pin);
 			boardtype |= pin_value<<i;
 			gpio_free(id_pin);
+		} else {
+			printf("fail to request gpio %d\n", id_pin);
+			hang();	
 		}
 	}	
 	if (boardtype<4) {
@@ -572,14 +575,23 @@ void sunxi_board_init(void)
 	power_failed |= axp_set_sw(IS_ENABLED(CONFIG_AXP_SW_ON));
 #endif
 #endif
-#if defined CONFIG_MACH_SUN8I_H3_NANOPI
-	int boardtype = -1;
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI)
 	char board[4][16] = {
 		"Nanopi M1",			
 		"Nanopi NEO",
 		"Nanopi NEO Air",
 		"Nanopi M1 Plus",
 	};
+#elif defined(CONFIG_MACH_SUN8I_H5_NANOPI)
+	char board[4][16] = {
+		"undefined",			
+		"Nanopi NEO2",
+		"undefined",
+		"Nanopi M1 Plus2",
+	};
+#endif
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
+	int boardtype = -1;
 	if ((boardtype = nanopi_h3_spl_get_board()) >= 0) {
 		printf("BOARD: %s\n", board[boardtype]);
 	}
