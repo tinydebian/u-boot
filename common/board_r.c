@@ -717,7 +717,7 @@ static int initr_kbd(void)
 }
 #endif
 
-#ifdef CONFIG_MACH_SUN8I_H3_NANOPI
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
 #include <asm/arch/gpio.h>
 #include <asm/gpio.h>
 int nanopi_h3_get_board(void)
@@ -742,6 +742,10 @@ int nanopi_h3_get_board(void)
 			boardtype |= pin_value<<i;
 			gpio_free(id_pin);
 		}
+		 else {
+			printf("fail to request gpio %d\n", id_pin);
+			hang();	
+		}
 	}	
 	if (boardtype<4) {
 		return boardtype;
@@ -750,21 +754,31 @@ int nanopi_h3_get_board(void)
 		hang();
 	}
 }
+#endif
 
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI)
+static char board[4][16] = {
+	"nanopi-m1",			
+	"nanopi-neo",
+	"nanopi-neo-air",
+	"nanopi-m1-plus",
+};
+#elif defined(CONFIG_MACH_SUN8I_H5_NANOPI)
+static char board[4][16] = {
+	"undefined",
+	"nanopi-neo2",
+	"undefined",
+	"nanopi-m1-plus2",
+};
+#endif
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
 static int setup_env_boardtype(void)
 {
 	int boardtype = -1;
-	char board[4][16] = {
-		"nanopi-m1",			
-		"nanopi-neo",
-		"nanopi-neo-air",
-		"nanopi-m1-plus",
-	};
 	boardtype = nanopi_h3_get_board();
 	setenv("board", board[boardtype]);
 	return 0;
 }
-
 #endif
 
 static int run_main_loop(void)
@@ -992,7 +1006,7 @@ static init_fnc_t init_sequence_r[] = {
 #if defined(CONFIG_SPARC)
 	prom_init,
 #endif
-#if defined(CONFIG_MACH_SUN8I_H3_NANOPI)
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
 	setup_env_boardtype,
 #endif
 	run_main_loop,
