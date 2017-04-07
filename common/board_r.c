@@ -514,6 +514,38 @@ static int initr_env(void)
 	return 0;
 }
 
+#ifdef CONFIG_MACH_SUN8I_H3_NANOPI
+#define SUNXI_BOOTED_FROM_MMC0	0
+#define SUNXI_BOOTED_FROM_MMC2	2
+#ifdef CONFIG_SUNXI_HIGH_SRAM
+#define SPL_ADDR		0x10000
+#else
+#define SPL_ADDR		0x0
+#endif
+static int init_env_boot_mmc(void)
+{
+	/* initialize environment boot_mmc, must after initr_env */
+	char boot_mmc_buf[24] = {0};
+	int boot_source;
+
+	boot_source = readb(0x28);
+
+	if (boot_source == SUNXI_BOOTED_FROM_MMC0) {
+		sprintf(boot_mmc_buf, "%s", "0");
+	} else if (boot_source == SUNXI_BOOTED_FROM_MMC2) {
+		sprintf(boot_mmc_buf, "%s", "2");
+	} else {
+		printf("ERROR: unsupported boot mmc %d\n", boot_source);
+		hang();
+	}
+	if (setenv("boot_mmc", boot_mmc_buf)) {
+		printf("setenv boot_mmc=%s fail\n", boot_mmc_buf);
+		hang();
+	}
+	return 0;
+}
+#endif
+
 #ifdef CONFIG_SYS_BOOTPARAMS_LEN
 static int initr_malloc_bootparams(void)
 {
@@ -907,6 +939,9 @@ static init_fnc_t init_sequence_r[] = {
 	initr_dataflash,
 #endif
 	initr_env,
+#ifdef CONFIG_MACH_SUN8I_H3_NANOPI
+	init_env_boot_mmc,
+#endif
 #ifdef CONFIG_SYS_BOOTPARAMS_LEN
 	initr_malloc_bootparams,
 #endif
