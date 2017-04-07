@@ -294,7 +294,8 @@ dtb-$(CONFIG_MACH_SUN8I_H3) += \
 	sun8i-h3-orangepi-plus.dtb \
 	sun8i-h3-orangepi-plus2e.dtb \
 	sun8i-h3-nanopi-neo.dtb \
-	sun8i-h3-nanopi-neo-air.dtb
+	sun8i-h3-nanopi-neo-air.dtb \
+	sun8i-h3-nanopi-m1-plus.dtb
 dtb-$(CONFIG_MACH_SUN50I_H5) += \
 	sun50i-h5-orangepi-pc2.dtb \
 	sun50i-h5-nanopi-neo2.dtb
