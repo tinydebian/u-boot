@@ -45,7 +45,7 @@
 #include "sun8i-h3.dtsi"
 
 / {
-	model = "NanoPi NEO 2";
+	model = "NanoPi H5";
 	compatible = "friendlyelec,nanopi-neo-2", "allwinner,sun50i-h5";
 
 	cpus {
