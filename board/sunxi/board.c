@@ -576,17 +576,17 @@ void sunxi_board_init(void)
 #endif
 #endif
 #if defined(CONFIG_MACH_SUN8I_H3_NANOPI)
-	char board[4][16] = {
+	char board[4][32] = {
 		"Nanopi M1",			
 		"Nanopi NEO",
 		"Nanopi NEO Air",
 		"Nanopi M1 Plus",
 	};
 #elif defined(CONFIG_MACH_SUN8I_H5_NANOPI)
-	char board[4][16] = {
+	char board[4][32] = {
 		"undefined",			
 		"Nanopi NEO2",
-		"undefined",
+		"Nanopi NEO Plus2",
 		"Nanopi M1 Plus2",
 	};
 #endif

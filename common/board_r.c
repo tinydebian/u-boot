@@ -789,17 +789,17 @@ int nanopi_h3_get_board(void)
 #endif
 
 #if defined(CONFIG_MACH_SUN8I_H3_NANOPI)
-static char board[4][16] = {
+static char board[4][32] = {
 	"nanopi-m1",			
 	"nanopi-neo",
 	"nanopi-neo-air",
 	"nanopi-m1-plus",
 };
 #elif defined(CONFIG_MACH_SUN8I_H5_NANOPI)
-static char board[4][16] = {
+static char board[4][32] = {
 	"undefined",
 	"nanopi-neo2",
-	"undefined",
+	"nanopi-neo-plus2",
 	"nanopi-m1-plus2",
 };
 #endif
