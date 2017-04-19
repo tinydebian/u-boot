@@ -514,13 +514,13 @@ static int initr_env(void)
 	return 0;
 }
 
-#ifdef CONFIG_MACH_SUN8I_H3_NANOPI
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
 #define SUNXI_BOOTED_FROM_MMC0	0
 #define SUNXI_BOOTED_FROM_MMC2	2
-#ifdef CONFIG_SUNXI_HIGH_SRAM
-#define SPL_ADDR		0x10000
-#else
+#ifdef CONFIG_MACH_SUN8I_H3_NANOPI
 #define SPL_ADDR		0x0
+#elif defined(CONFIG_MACH_SUN8I_H5_NANOPI)
+#define SPL_ADDR		0x10000
 #endif
 static int init_env_boot_mmc(void)
 {
@@ -528,7 +528,7 @@ static int init_env_boot_mmc(void)
 	char boot_mmc_buf[24] = {0};
 	int boot_source;
 
-	boot_source = readb(0x28);
+	boot_source = readb(SPL_ADDR + 0x28);
 
 	if (boot_source == SUNXI_BOOTED_FROM_MMC0) {
 		sprintf(boot_mmc_buf, "%s", "0");
@@ -939,7 +939,7 @@ static init_fnc_t init_sequence_r[] = {
 	initr_dataflash,
 #endif
 	initr_env,
-#ifdef CONFIG_MACH_SUN8I_H3_NANOPI
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
 	init_env_boot_mmc,
 #endif
 #ifdef CONFIG_SYS_BOOTPARAMS_LEN
