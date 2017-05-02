@@ -730,7 +730,7 @@ static void setup_environment(const void *fdt)
 			mac_addr[5] = (sid[3] >>  0) & 0xff;
 
 			eth_setenv_enetaddr(ethaddr, mac_addr);
-#ifdef CONFIG_MACH_SUN8I_H3_NANOPI
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
 			char mac_node[32];
 			sprintf(mac_node, "[%x %x %x %x %x %x]", \
 								mac_addr[0], mac_addr[1], \
