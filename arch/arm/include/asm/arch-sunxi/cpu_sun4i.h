@@ -191,9 +191,15 @@ defined(CONFIG_MACH_SUN50I)
 #define SUNXI_SS_BOND_ID_A31S		5
 
 #ifndef __ASSEMBLY__
-#ifdef CONFIG_MACH_SUN8I_H3_NANOPI
-enum NANOPI_H3_BOARDTYPE {NANOPI_M1 = 0, NANOPI_NEO, NANOPI_NEO_AIR, NANOPI_M1_PLUS};
-int nanopi_h3_spl_get_board(void);
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
+#define CPU_TYPE_H2_1	(0x42)
+#define CPU_TYPE_H2_2	(0x83)
+#define CPU_TYPE_H3_1	(0x00)
+#define CPU_TYPE_H3_2	(0x81)
+#define CPU_TYPE_H3D	(0x58)
+#define BOARD_TYPE_MAX  (5)
+#define BOARD_TYPE_NANOPI_DUO (4)
+int nanopi_spl_get_board(void);
 #endif
 void sunxi_board_init(void);
 void sunxi_reset(void);

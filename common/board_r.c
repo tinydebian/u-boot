@@ -752,16 +752,16 @@ static int initr_kbd(void)
 #if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
 #include <asm/arch/gpio.h>
 #include <asm/gpio.h>
-int nanopi_h3_get_board(void)
+int nanopi_read_gpio(void)
 {
+	int ret = -1, gpio = 0;
 	char pin_label[16];
 	char pin[2][8] = {
 		"PC4",
 		"PC7",
-	};
-	int ret = -1,boardtype = 0;
+	};	
 	int i, pin_num, id_pin, pin_value;
-
+	
 	pin_num = sizeof(pin) / sizeof(pin[0]);
 	for (i=0; i<pin_num; i++) {
 		memset(pin_label, 0, sizeof(pin_label));
@@ -771,29 +771,52 @@ int nanopi_h3_get_board(void)
 		if (!ret) {
 			gpio_direction_input(id_pin);
 			pin_value = gpio_get_value(id_pin);
-			boardtype |= pin_value<<i;
+			gpio |= pin_value<<i;
 			gpio_free(id_pin);
-		}
-		 else {
+		} else {
 			printf("fail to request gpio %d\n", id_pin);
-			hang();	
+			hang(); 
 		}
+	}
+	return gpio;
+}
+int nanopi_get_board(void)
+{
+	int ret = -1, boardtype = -1, cputype = -1;
+	unsigned int sid[4];
+	
+	ret = sunxi_get_sid(sid);
+	if (ret == 0 && sid[0] != 0) {
+		cputype = sid[0] & 0xff;
+	}
+	switch (cputype) {
+	case CPU_TYPE_H2_1:
+	case CPU_TYPE_H2_2:
+		boardtype = BOARD_TYPE_NANOPI_DUO;
+		setenv("cpu", "h2-plus");
+		break;
+	default:					// H3 & H5
+		boardtype = nanopi_read_gpio();
+		setenv("cpu", "h3");	// H5 doesn't need this env
+		break;
 	}	
-	if (boardtype<4) {
+	if (boardtype>=0 && boardtype<BOARD_TYPE_MAX) {
 		return boardtype;
 	} else {
 		printf("UNKNOWN BOARDTYPE\n");
 		hang();
 	}
+	return boardtype;
 }
 #endif
 
 #if defined(CONFIG_MACH_SUN8I_H3_NANOPI)
-static char board[4][32] = {
+static char board[BOARD_TYPE_MAX][32] = {
 	"nanopi-m1",			
 	"nanopi-neo",
 	"nanopi-neo-air",
 	"nanopi-m1-plus",
+	"nanopi-duo",
 };
 #elif defined(CONFIG_MACH_SUN8I_H5_NANOPI)
 static char board[4][32] = {
@@ -807,7 +830,7 @@ static char board[4][32] = {
 static int setup_env_boardtype(void)
 {
 	int boardtype = -1;
-	boardtype = nanopi_h3_get_board();
+	boardtype = nanopi_get_board();
 	setenv("board", board[boardtype]);
 	return 0;
 }

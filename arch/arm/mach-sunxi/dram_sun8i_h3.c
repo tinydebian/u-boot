@@ -39,13 +39,14 @@ struct dram_para {
 #ifdef CONFIG_MACH_SUN8I_H3_NANOPI
 static int nanopi_h3_get_dram_clk(void)
 {
-	int nanopi_h3_dram_clk[4] = {
+	int nanopi_h3_dram_clk[BOARD_TYPE_MAX] = {
 	576 /* NanoPi-M1 */,
 	408 /* NanoPi-NEO */,
 	408 /* NanoPi-NEO-Air */,
 	576 /* NanoPi-M1-Plus */,
+	408 /* NanoPi-Duo */,
 	};
-	int boardtype = nanopi_h3_spl_get_board();
+	int boardtype = nanopi_spl_get_board();
 	return nanopi_h3_dram_clk[boardtype];
 }
 #endif

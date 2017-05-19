@@ -478,16 +478,16 @@ void i2c_init_board(void)
 
 #ifdef CONFIG_SPL_BUILD
 #if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
-int nanopi_h3_spl_get_board(void)
+int nanopi_spl_read_gpio(void)
 {
+	int ret = -1, gpio = 0;
 	char pin_label[16];
 	char pin[2][8] = {
 		"PC4",
 		"PC7",
-	};
-	int ret = -1,boardtype = 0;
+	};	
 	int i, pin_num, id_pin, pin_value;
-
+	
 	pin_num = sizeof(pin) / sizeof(pin[0]);
 	for (i=0; i<pin_num; i++) {
 		memset(pin_label, 0, sizeof(pin_label));
@@ -497,19 +497,40 @@ int nanopi_h3_spl_get_board(void)
 		if (!ret) {
 			gpio_direction_input(id_pin);
 			pin_value = gpio_get_value(id_pin);
-			boardtype |= pin_value<<i;
+			gpio |= pin_value<<i;
 			gpio_free(id_pin);
 		} else {
 			printf("fail to request gpio %d\n", id_pin);
-			hang();	
+			hang(); 
 		}
-	}	
-	if (boardtype<4) {
+	}
+	return gpio;
+}
+int nanopi_spl_get_board(void)
+{
+	int ret = -1, boardtype = -1, cputype = -1;
+	unsigned int sid[4];
+	
+	ret = sunxi_get_sid(sid);
+	if (ret == 0 && sid[0] != 0) {
+		cputype = sid[0] & 0xff;
+	}
+	switch (cputype) {
+	case CPU_TYPE_H2_1:
+	case CPU_TYPE_H2_2:
+		boardtype = BOARD_TYPE_NANOPI_DUO;						
+		break;
+	default:		// H3 & H5
+		boardtype = nanopi_spl_read_gpio();
+		break;
+	}
+	if (boardtype>=0 && boardtype<BOARD_TYPE_MAX) {
 		return boardtype;
 	} else {
-		printf("UNKNOWN BOARDTYPE\n");
+		printf("SPL: UNKNOWN BOARDTYPE\n");
 		hang();
 	}
+	return boardtype;
 }
 #endif
 
@@ -576,14 +597,15 @@ void sunxi_board_init(void)
 #endif
 #endif
 #if defined(CONFIG_MACH_SUN8I_H3_NANOPI)
-	char board[4][32] = {
+	char board[BOARD_TYPE_MAX][32] = {
 		"Nanopi M1",			
 		"Nanopi NEO",
 		"Nanopi NEO Air",
 		"Nanopi M1 Plus",
+		"Nanopi Duo",
 	};
 #elif defined(CONFIG_MACH_SUN8I_H5_NANOPI)
-	char board[4][32] = {
+	char board[BOARD_TYPE_MAX][32] = {
 		"undefined",			
 		"Nanopi NEO2",
 		"Nanopi NEO Plus2",
@@ -592,7 +614,7 @@ void sunxi_board_init(void)
 #endif
 #if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
 	int boardtype = -1;
-	if ((boardtype = nanopi_h3_spl_get_board()) >= 0) {
+	if ((boardtype = nanopi_spl_get_board()) >= 0) {
 		printf("BOARD: %s\n", board[boardtype]);
 	}
 #endif
@@ -730,7 +752,7 @@ static void setup_environment(const void *fdt)
 			mac_addr[5] = (sid[3] >>  0) & 0xff;
 
 			eth_setenv_enetaddr(ethaddr, mac_addr);
-#ifdef CONFIG_MACH_SUN8I_H3_NANOPI
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
 			char mac_node[32];
 			sprintf(mac_node, "[%x %x %x %x %x %x]", \
 								mac_addr[0], mac_addr[1], \
