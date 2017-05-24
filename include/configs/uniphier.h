@@ -57,7 +57,6 @@
 #define CONFIG_SYS_MAX_FLASH_BANKS_DETECT 1
 
 /* serial console configuration */
-#define CONFIG_BAUDRATE			115200
 
 #define CONFIG_SYS_LONGHELP		/* undef to save memory */
 
@@ -142,7 +141,7 @@
 #if defined(CONFIG_ARM64) && !defined(CONFIG_ARMV8_MULTIENTRY)
 /* ARM Trusted Firmware */
 #define BOOT_IMAGES \
-	"second_image=bl1.bin\0" \
+	"second_image=unph_bl.bin\0" \
 	"third_image=fip.bin\0"
 #else
 #define BOOT_IMAGES \

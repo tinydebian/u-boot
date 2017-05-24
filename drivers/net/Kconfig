@@ -124,12 +124,12 @@ config FEC_MXC
 	  NXP i.MX processors.
 
 config MVPP2
-	bool "Marvell Armada 375 network interface support"
-	depends on ARMADA_375
+	bool "Marvell Armada 375/7K/8K network interface support"
+	depends on ARMADA_375 || ARMADA_8K
 	select PHYLIB
 	help
 	  This driver supports the network interface units in the
-	  Marvell ARMADA 375 SoC.
+	  Marvell ARMADA 375, 7K and 8K SoCs.
 
 config MACB
 	bool "Cadence MACB/GEM Ethernet Interface"
@@ -149,6 +149,12 @@ config PCH_GBE
 	  This MAC is present in Intel Platform Controller Hub EG20T. It
 	  supports 10/100/1000 Mbps operation.
 
+config RGMII
+	bool "Enable RGMII"
+	help
+	  Enable the support of the Reduced Gigabit Media-Independent
+	  Interface (RGMII).
+
 config RTL8139
 	bool "Realtek 8139 series Ethernet controller driver"
 	help
@@ -161,6 +167,17 @@ config RTL8169
 	  This driver supports Realtek 8169 series gigabit ethernet family of
 	  PCI/PCIe chipsets/adapters.
 
+config SUN7I_GMAC
+	bool "Enable Allwinner GMAC Ethernet support"
+	help
+	  Enable the support for Sun7i GMAC Ethernet controller
+
+config SUN4I_EMAC
+	bool "Allwinner Sun4i Ethernet MAC support"
+	depends on DM_ETH
+	help
+	  This driver supports the Allwinner based SUN4I Ethernet MAC.
+
 config SUN8I_EMAC
         bool "Allwinner Sun8i Ethernet MAC support"
         depends on DM_ETH
@@ -168,7 +185,7 @@ config SUN8I_EMAC
         help
           This driver supports the  Allwinner based SUN8I/SUN50I Ethernet MAC.
 	  It can be found in H3/A64/A83T based SoCs and compatible with both
-	  External and Internal PHY's.
+	  External and Internal PHYs.
 
 config XILINX_AXIEMAC
 	depends on DM_ETH && (MICROBLAZE || ARCH_ZYNQ || ARCH_ZYNQMP)
