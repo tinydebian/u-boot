@@ -3,9 +3,9 @@
 #
 
 VERSION = 2017
-PATCHLEVEL = 03
+PATCHLEVEL = 05
 SUBLEVEL =
-EXTRAVERSION = -rc2
+EXTRAVERSION =
 NAME =
 
 # *DOCUMENTATION*
@@ -348,7 +348,7 @@ OBJCOPY		= $(CROSS_COMPILE)objcopy
 OBJDUMP		= $(CROSS_COMPILE)objdump
 AWK		= awk
 PERL		= perl
-PYTHON		= python
+PYTHON		?= python
 DTC		= dtc
 CHECK		= sparse
 
@@ -371,7 +371,7 @@ export ARCH CPU BOARD VENDOR SOC CPUDIR BOARDDIR
 export CONFIG_SHELL HOSTCC HOSTCFLAGS HOSTLDFLAGS CROSS_COMPILE AS LD CC
 export CPP AR NM LDR STRIP OBJCOPY OBJDUMP
 export MAKE AWK PERL PYTHON
-export HOSTCXX HOSTCXXFLAGS DTC CHECK CHECKFLAGS
+export HOSTCXX HOSTCXXFLAGS CHECK CHECKFLAGS DTC DTC_FLAGS
 
 export KBUILD_CPPFLAGS NOSTDINC_FLAGS UBOOTINCLUDE OBJCOPYFLAGS LDFLAGS
 export KBUILD_CFLAGS KBUILD_AFLAGS
@@ -624,8 +624,9 @@ KBUILD_CFLAGS += $(KCFLAGS)
 UBOOTINCLUDE    := \
 		-Iinclude \
 		$(if $(KBUILD_SRC), -I$(srctree)/include) \
-		$(if $(CONFIG_SYS_THUMB_BUILD), $(if $(CONFIG_HAS_THUMB2),, \
-			-I$(srctree)/arch/$(ARCH)/thumb1/include),) \
+		$(if $(CONFIG_$(SPL_)SYS_THUMB_BUILD), \
+			$(if $(CONFIG_HAS_THUMB2),, \
+				-I$(srctree)/arch/$(ARCH)/thumb1/include),) \
 		-I$(srctree)/arch/$(ARCH)/include \
 		-include $(srctree)/include/linux/kconfig.h
 
@@ -804,6 +805,10 @@ ALL-y += $(CONFIG_BUILD_TARGET:"%"=%)
 endif
 
 LDFLAGS_u-boot += $(LDFLAGS_FINAL)
+
+# Avoid 'Not enough room for program headers' error on binutils 2.28 onwards.
+LDFLAGS_u-boot += $(call ld-option, --no-dynamic-linker)
+
 ifneq ($(CONFIG_SYS_TEXT_BASE),)
 LDFLAGS_u-boot += -Ttext $(CONFIG_SYS_TEXT_BASE)
 endif
@@ -1364,13 +1369,17 @@ spl/u-boot-spl: tools prepare \
 spl/sunxi-spl.bin: spl/u-boot-spl
 	@:
 
+spl/sunxi-spl-with-ecc.bin: spl/sunxi-spl.bin
+	@:
+
 spl/u-boot-spl.sfp: spl/u-boot-spl
 	@:
 
 spl/boot.bin: spl/u-boot-spl
 	@:
 
-tpl/u-boot-tpl.bin: tools prepare
+tpl/u-boot-tpl.bin: tools prepare \
+		$(if $(CONFIG_OF_SEPARATE)$(CONFIG_SPL_OF_PLATDATA),dts/dt.dtb)
 	$(Q)$(MAKE) obj=tpl -f $(srctree)/scripts/Makefile.spl all
 
 TAG_SUBDIRS := $(patsubst %,$(srctree)/%,$(u-boot-dirs) include)

@@ -7,8 +7,6 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#define CONFIG_LS102XA
-
 #define CONFIG_ARMV7_PSCI_1_0
 
 #define CONFIG_ARMV7_SECURE_BASE	OCRAM_BASE_S_ADDR
@@ -123,8 +121,6 @@ unsigned long get_board_ddr_clk(void);
 #define CONFIG_ECC_INIT_VIA_DDRCONTROLLER
 #define CONFIG_MEM_INIT_VALUE           0xdeadbeef
 #endif
-
-#define CONFIG_FSL_CAAM			/* Enable CAAM */
 
 #if !defined(CONFIG_SD_BOOT) && !defined(CONFIG_NAND_BOOT) && \
 	!defined(CONFIG_QSPI_BOOT)
@@ -362,8 +358,6 @@ unsigned long get_board_ddr_clk(void);
 #define CONFIG_SYS_NS16550_CLK		get_serial_clock()
 #endif
 
-#define CONFIG_BAUDRATE			115200
-
 /*
  * I2C
  */
@@ -425,10 +419,7 @@ unsigned long get_board_ddr_clk(void);
 /*
  * Video
  */
-#define CONFIG_FSL_DCU_FB
-
-#ifdef CONFIG_FSL_DCU_FB
-#define CONFIG_CMD_BMP
+#ifdef CONFIG_VIDEO_FSL_DCU_FB
 #define CONFIG_VIDEO_LOGO
 #define CONFIG_VIDEO_BMP_LOGO
 
@@ -540,12 +531,6 @@ unsigned long get_board_ddr_clk(void);
 #define CONFIG_SYS_LOAD_ADDR		0x82000000
 
 #define CONFIG_LS102XA_STREAM_ID
-
-/*
- * Stack sizes
- * The stack sizes are set up in start.S using the settings below
- */
-#define CONFIG_STACKSIZE		(30 * 1024)
 
 #define CONFIG_SYS_INIT_SP_OFFSET \
 	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
