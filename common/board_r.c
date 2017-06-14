@@ -864,7 +864,7 @@ static char board[BOARD_TYPE_MAX][32] = {
 };
 #elif defined(CONFIG_MACH_SUN8I_H5_NANOPI)
 static char board[4][32] = {
-	"undefined",
+	"nanopi-neo-core2",
 	"nanopi-neo2",
 	"nanopi-neo-plus2",
 	"nanopi-m1-plus2",

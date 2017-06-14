@@ -663,7 +663,7 @@ void sunxi_board_init(void)
 #endif
 #if defined(CONFIG_MACH_SUN8I_H3_NANOPI)
 	char board[BOARD_TYPE_MAX][32] = {
-		"Nanopi M1",			
+		"Nanopi M1",
 		"Nanopi NEO",
 		"Nanopi NEO Air",
 		"Nanopi M1 Plus",
@@ -672,7 +672,7 @@ void sunxi_board_init(void)
 	};
 #elif defined(CONFIG_MACH_SUN8I_H5_NANOPI)
 	char board[BOARD_TYPE_MAX][32] = {
-		"undefined",			
+		"Nanopi NEO Core2",
 		"Nanopi NEO2",
 		"Nanopi NEO Plus2",
 		"Nanopi M1 Plus2",
@@ -681,7 +681,7 @@ void sunxi_board_init(void)
 #if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
 	int boardtype = -1;
 	if ((boardtype = nanopi_spl_get_board()) >= 0) {
-		printf("BOARD: %s\n", board[boardtype]);
+		printf("BOARD: %s id=%d\n", board[boardtype], boardtype);
 	}
 #endif
 	printf("DRAM:");
