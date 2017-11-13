@@ -825,6 +825,11 @@ static void setup_environment(const void *fdt)
 								mac_addr[2], mac_addr[3], \
 								mac_addr[4], mac_addr[5]);
 			setenv("mac_node", mac_node);
+			sprintf(mac_node, "[%x %x %x %x %x %x]", \
+					mac_addr[0], mac_addr[5], \
+					mac_addr[4], mac_addr[3], \
+					mac_addr[2], mac_addr[1]);
+			setenv("wifi_mac_node", mac_node);
 #endif
 		}
 
