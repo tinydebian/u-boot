@@ -796,7 +796,7 @@ int nanopi_get_board(void)
 {
 	int ret = -1, boardtype = -1, cputype = -1;
 	unsigned int sid[4];
-	//int extra_gpio;
+	int extra_gpio;
 	int has_emmc = 0;
 	const char *model = fdt_getprop(gd->fdt_blob, 0, "model", NULL);
 	
@@ -818,7 +818,7 @@ int nanopi_get_board(void)
 	default:					// dafault is H3.boot.src will use env-cpu=h3
 		boardtype = nanopi_read_gpio();
 		setenv("cpu", "h3");	
-		// extra_gpio = nanopi_read_extra_gpio(); 
+		extra_gpio = nanopi_read_extra_gpio(); 
 		if (!strcasecmp(model, "NanoPi H3")) { // make sure this is really a H3-Uboot
 			switch (boardtype) {
 			case BOARD_TYPE_NANOPI_NEO:
@@ -831,9 +831,9 @@ int nanopi_get_board(void)
 					has_emmc = 1;
 					break;
 				}
-				printf("eMMC %s\n", has_emmc?"exist":"not exist");
+				printf("eMMC %s, PC6=%d\n", has_emmc?"exist":"not exist", extra_gpio);
 
-				if (/*extra_gpio == 1 &&*/has_emmc == 1)
+				if (extra_gpio == 1 || has_emmc == 1)
 					boardtype = BOARD_TYPE_NANOPI_NEO_CORE;
 
 				break;
