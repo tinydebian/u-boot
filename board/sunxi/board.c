@@ -531,25 +531,23 @@ int nanopi_spl_read_gpio(void)
 	return gpio;
 }
 
-int nanopi_spl_read_extra_gpio(void)
+int nanopi_spl_read_extra_gpio(char pin_name[][8], int num, int pull)
 {
 	int ret = -1, gpio = 0;
 	char pin_label[16];
-	char pin[1][8] = {
-		"PC6",
-	};	
-	int i, pin_num, id_pin, pin_value, old_func;
-	
-	pin_num = sizeof(pin) / sizeof(pin[0]);
-	for (i=0; i<pin_num; i++) {
+	char pin[8][8];
+	int i, id_pin, pin_value, old_func;
+
+	for (i=0; i<num; i++) {
 		memset(pin_label, 0, sizeof(pin_label));
 		sprintf(pin_label, "boardid_%d", i);
+		strcpy(pin[i], pin_name[i]);
 		id_pin = sunxi_name_to_gpio(pin[i]);
 		ret = gpio_request(id_pin, pin_label);
 		if (!ret) {
 			old_func = sunxi_gpio_get_cfgpin(id_pin);	// store func
 			gpio_direction_input(id_pin);
-			sunxi_gpio_set_pull(id_pin, SUNXI_GPIO_PULL_DOWN);
+			sunxi_gpio_set_pull(id_pin, pull);
 			mdelay(2);
 			pin_value = gpio_get_value(id_pin);
 			gpio |= pin_value<<i;
@@ -568,6 +566,7 @@ int nanopi_spl_get_board(void)
 	int ret = -1, boardtype = -1, cputype = -1;
 	unsigned int sid[4];
 	int extra_gpio;
+	char pin[8][8];
 	
 	ret = sunxi_get_sid(sid);
 	if (ret == 0 && sid[0] != 0) {
@@ -580,13 +579,25 @@ int nanopi_spl_get_board(void)
 		break;
 	default:		// H3 & H5
 		boardtype = nanopi_spl_read_gpio();
-		extra_gpio = nanopi_spl_read_extra_gpio();   // unreliable gpio except nanopi-neo-core. Don't count on this gpio.
-		switch (boardtype) {
-		case BOARD_TYPE_NANOPI_NEO:
+
+		// nanopi-neo or nanopi-neo-core ?
+		if (boardtype == BOARD_TYPE_NANOPI_NEO ) {
+			strcpy(pin[0], "PC6");
+			extra_gpio = nanopi_spl_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DOWN);   // unreliable gpio except nanopi-neo-core. Don't count on this gpio.
 			if (extra_gpio == 1)
 				boardtype = BOARD_TYPE_NANOPI_NEO_CORE;
 			break;
 		}
+
+		// nanopi-m1-plus or nanopi-k1(h3) ?
+		if (boardtype == BOARD_TYPE_NANOPI_M1_PLUS) {
+			strcpy(pin[0], "PD6");
+			extra_gpio = nanopi_spl_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DISABLE);   // unreliable gpio except nanopi-neo-core. Don't count on this gpio.
+			if (extra_gpio == 1)
+				boardtype = BOARD_TYPE_NANOPI_K1;
+			break;
+		}
+		
 		break;
 	}
 	if (boardtype>=0 && boardtype<BOARD_TYPE_MAX) {
@@ -669,6 +680,7 @@ void sunxi_board_init(void)
 		"Nanopi M1 Plus",
 		"Nanopi Duo",
 		"Nanopi NEO Core",
+		"Nanopi K1",
 	};
 #elif defined(CONFIG_MACH_SUN8I_H5_NANOPI)
 	char board[BOARD_TYPE_MAX][32] = {
