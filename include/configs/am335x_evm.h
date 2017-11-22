@@ -20,7 +20,6 @@
 
 #ifndef CONFIG_SPL_BUILD
 # define CONFIG_TIMESTAMP
-# define CONFIG_LZO
 #endif
 
 #define CONFIG_SYS_BOOTM_LEN		(16 << 20)
@@ -39,8 +38,8 @@
 
 #ifdef CONFIG_NAND
 #define NANDARGS \
-	"mtdids=" MTDIDS_DEFAULT "\0" \
-	"mtdparts=" MTDPARTS_DEFAULT "\0" \
+	"mtdids=" CONFIG_MTDIDS_DEFAULT "\0" \
+	"mtdparts=" CONFIG_MTDPARTS_DEFAULT "\0" \
 	"nandargs=setenv bootargs console=${console} " \
 		"${optargs} " \
 		"root=${nandroot} " \
@@ -82,15 +81,6 @@
 	func(NAND, nand, 0) \
 	func(PXE, pxe, na) \
 	func(DHCP, dhcp, na)
-
-#define CONFIG_BOOTCOMMAND \
-	"if test ${boot_fit} -eq 1; then "	\
-		"run update_to_fit;"	\
-	"fi;"	\
-	"run findfdt; " \
-	"run init_console; " \
-	"run envboot; " \
-	"run distro_bootcmd"
 
 #include <config_distro_bootcmd.h>
 
@@ -176,7 +166,6 @@
 #define CONFIG_SYS_NS16550_COM5		0x481a8000	/* UART4 */
 #define CONFIG_SYS_NS16550_COM6		0x481aa000	/* UART5 */
 
-#define CONFIG_CMD_EEPROM
 #define CONFIG_ENV_EEPROM_IS_ON_I2C
 #define CONFIG_SYS_I2C_EEPROM_ADDR	0x50	/* Main EEPROM */
 #define CONFIG_SYS_I2C_EEPROM_ADDR_LEN	2
@@ -193,8 +182,6 @@
 #define CONFIG_SYS_BOOTCOUNT_BE
 
 /* USB gadget RNDIS */
-
-#define CONFIG_SPL_LDSCRIPT		"arch/arm/mach-omap2/am33xx/u-boot-spl.lds"
 #endif
 
 #ifdef CONFIG_NAND
@@ -206,9 +193,6 @@
 #define CONFIG_SYS_NAND_OOBSIZE		64
 #define CONFIG_SYS_NAND_BLOCK_SIZE	(128*1024)
 /* NAND: driver related configs */
-#define CONFIG_NAND_OMAP_GPMC
-#define CONFIG_NAND_OMAP_GPMC_PREFETCH
-#define CONFIG_NAND_OMAP_ELM
 #define CONFIG_SYS_NAND_BAD_BLOCK_POS	NAND_LARGE_BADBLOCK_POS
 #define CONFIG_SYS_NAND_ECCPOS		{ 2, 3, 4, 5, 6, 7, 8, 9, \
 					 10, 11, 12, 13, 14, 15, 16, 17, \
@@ -222,27 +206,10 @@
 #define CONFIG_SYS_NAND_ECCBYTES	14
 #define CONFIG_SYS_NAND_ONFI_DETECTION
 #define CONFIG_NAND_OMAP_ECCSCHEME	OMAP_ECC_BCH8_CODE_HW
-#define MTDIDS_DEFAULT			"nand0=nand.0"
-#define MTDPARTS_DEFAULT		"mtdparts=nand.0:" \
-					"128k(NAND.SPL)," \
-					"128k(NAND.SPL.backup1)," \
-					"128k(NAND.SPL.backup2)," \
-					"128k(NAND.SPL.backup3)," \
-					"256k(NAND.u-boot-spl-os)," \
-					"1m(NAND.u-boot)," \
-					"128k(NAND.u-boot-env)," \
-					"128k(NAND.u-boot-env.backup1)," \
-					"8m(NAND.kernel)," \
-					"-(NAND.file-system)"
 #define CONFIG_SYS_NAND_U_BOOT_OFFS	0x000c0000
 /* NAND: SPL related configs */
-#ifdef CONFIG_SPL_NAND_SUPPORT
-#define CONFIG_SPL_NAND_AM33XX_BCH
-#endif
 #ifdef CONFIG_SPL_OS_BOOT
-#define CONFIG_CMD_SPL_NAND_OFS	0x00080000 /* os parameters */
 #define CONFIG_SYS_NAND_SPL_KERNEL_OFFS	0x00200000 /* kernel offset */
-#define CONFIG_CMD_SPL_WRITE_SIZE	0x2000
 #endif
 #endif /* !CONFIG_NAND */
 
@@ -269,23 +236,6 @@
 #define CONFIG_AM335X_USB1
 #define CONFIG_AM335X_USB1_MODE MUSB_HOST
 
-#ifndef CONFIG_SPL_USBETH_SUPPORT
-/* Fastboot */
-#define CONFIG_USB_FUNCTION_FASTBOOT
-#define CONFIG_CMD_FASTBOOT
-#define CONFIG_ANDROID_BOOT_IMAGE
-#define CONFIG_FASTBOOT_BUF_ADDR	CONFIG_SYS_LOAD_ADDR
-#define CONFIG_FASTBOOT_BUF_SIZE	0x07000000
-
-#define CONFIG_FASTBOOT_FLASH_MMC_DEV   1
-#endif
-
-#ifdef CONFIG_USB_MUSB_GADGET
-#define CONFIG_USB_ETHER
-#define CONFIG_USB_ETH_RNDIS
-#define CONFIG_USBNET_HOST_ADDR	"de:ad:be:af:00:00"
-#endif /* CONFIG_USB_MUSB_GADGET */
-
 /*
  * Disable MMC DM for SPL build and can be re-enabled after adding
  * DM support in SPL
@@ -298,8 +248,6 @@
 
 #if defined(CONFIG_SPL_BUILD) && defined(CONFIG_SPL_USBETH_SUPPORT)
 /* Remove other SPL modes. */
-#define CONFIG_ENV_IS_NOWHERE
-#undef CONFIG_ENV_IS_IN_NAND
 /* disable host part of MUSB in SPL */
 /* disable EFI partitions and partition UUID support */
 #endif
@@ -327,19 +275,12 @@
 #define CONFIG_SPL_SPI_LOAD
 #define CONFIG_SYS_SPI_U_BOOT_OFFS	0x20000
 
-#define CONFIG_ENV_IS_IN_SPI_FLASH
 #define CONFIG_SYS_REDUNDAND_ENVIRONMENT
 #define CONFIG_ENV_SPI_MAX_HZ		CONFIG_SF_DEFAULT_SPEED
 #define CONFIG_ENV_SECT_SIZE		(4 << 10) /* 4 KB sectors */
 #define CONFIG_ENV_OFFSET		(768 << 10) /* 768 KiB in */
 #define CONFIG_ENV_OFFSET_REDUND	(896 << 10) /* 896 KiB in */
-#define MTDIDS_DEFAULT			"nor0=m25p80-flash.0"
-#define MTDPARTS_DEFAULT		"mtdparts=m25p80-flash.0:128k(SPL)," \
-					"512k(u-boot),128k(u-boot-env1)," \
-					"128k(u-boot-env2),3464k(kernel)," \
-					"-(rootfs)"
 #elif defined(CONFIG_EMMC_BOOT)
-#define CONFIG_ENV_IS_IN_MMC
 #define CONFIG_SYS_MMC_ENV_DEV		1
 #define CONFIG_SYS_MMC_ENV_PART		2
 #define CONFIG_ENV_OFFSET		0x0
@@ -347,34 +288,19 @@
 #define CONFIG_SYS_REDUNDAND_ENVIRONMENT
 #define CONFIG_SYS_MMC_MAX_DEVICE	2
 #elif defined(CONFIG_NOR_BOOT)
-#define CONFIG_ENV_IS_IN_FLASH
 #define CONFIG_ENV_SECT_SIZE		(128 << 10)	/* 128 KiB */
 #define CONFIG_ENV_OFFSET		(512 << 10)	/* 512 KiB */
 #define CONFIG_ENV_OFFSET_REDUND	(768 << 10)	/* 768 KiB */
-#define MTDIDS_DEFAULT			"nor0=physmap-flash.0"
-#define MTDPARTS_DEFAULT		"mtdparts=physmap-flash.0:" \
-					"512k(u-boot)," \
-					"128k(u-boot-env1)," \
-					"128k(u-boot-env2)," \
-					"4m(kernel),-(rootfs)"
 #elif defined(CONFIG_ENV_IS_IN_NAND)
 #define CONFIG_ENV_OFFSET		0x001c0000
 #define CONFIG_ENV_OFFSET_REDUND	0x001e0000
 #define CONFIG_SYS_ENV_SECT_SIZE	CONFIG_SYS_NAND_BLOCK_SIZE
-#elif !defined(CONFIG_ENV_IS_NOWHERE)
-/* Not NAND, SPI, NOR or eMMC env, so put ENV in a file on FAT */
-#define CONFIG_ENV_IS_IN_FAT
-#define FAT_ENV_INTERFACE		"mmc"
-#define FAT_ENV_DEVICE_AND_PART		"0:1"
-#define FAT_ENV_FILE			"uboot.env"
 #endif
 
 /* SPI flash. */
 #define CONFIG_SF_DEFAULT_SPEED		24000000
 
 /* Network. */
-#define CONFIG_PHY_GIGE
-#define CONFIG_PHYLIB
 #define CONFIG_PHY_SMSC
 /* Enable Atheros phy driver */
 #define CONFIG_PHY_ATHEROS

@@ -166,15 +166,20 @@ static int imx_rgpio2p_bind(struct udevice *dev)
 	if (plat)
 		return 0;
 
-	addr = dev_get_addr_index(dev, 1);
+	addr = devfdt_get_addr_index(dev, 1);
 	if (addr == FDT_ADDR_T_NONE)
-		return -ENODEV;
+		return -EINVAL;
 
 	/*
 	 * TODO:
 	 * When every board is converted to driver model and DT is supported,
 	 * this can be done by auto-alloc feature, but not using calloc
 	 * to alloc memory for platdata.
+	 *
+	 * For example imx_rgpio2p_plat uses platform data rather than device
+	 * tree.
+	 *
+	 * NOTE: DO NOT COPY this code if you are using device tree.
 	 */
 	plat = calloc(1, sizeof(*plat));
 	if (!plat)

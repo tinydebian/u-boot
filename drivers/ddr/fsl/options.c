@@ -9,12 +9,16 @@
 #include <fsl_ddr_sdram.h>
 
 #include <fsl_ddr.h>
+#if defined(CONFIG_FSL_LSCH2) || defined(CONFIG_FSL_LSCH3) || \
+	defined(CONFIG_ARM)
+#include <asm/arch/clock.h>
+#endif
 
 /*
  * Use our own stack based buffer before relocation to allow accessing longer
  * hwconfig strings that might be in the environment before we've relocated.
  * This is pretty fragile on both the use of stack and if the buffer is big
- * enough. However we will get a warning from getenv_f for the later.
+ * enough. However we will get a warning from env_get_f() for the latter.
  */
 
 /* Board-specific functions defined in each board's ddr.c */
@@ -751,7 +755,7 @@ unsigned int populate_memctl_options(const common_timing_params_t *common_dimm,
 	 * Extract hwconfig from environment since we have not properly setup
 	 * the environment but need it for ddr config params
 	 */
-	if (getenv_f("hwconfig", buffer, sizeof(buffer)) > 0)
+	if (env_get_f("hwconfig", buffer, sizeof(buffer)) > 0)
 		buf = buffer;
 
 #if defined(CONFIG_SYS_FSL_DDR3) || \
@@ -1395,7 +1399,7 @@ int fsl_use_spd(void)
 	 * Extract hwconfig from environment since we have not properly setup
 	 * the environment but need it for ddr config params
 	 */
-	if (getenv_f("hwconfig", buffer, sizeof(buffer)) > 0)
+	if (env_get_f("hwconfig", buffer, sizeof(buffer)) > 0)
 		buf = buffer;
 
 	/* if hwconfig is not enabled, or "sdram" is not defined, use spd */

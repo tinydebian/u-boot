@@ -45,12 +45,12 @@ int dram_init(void)
 
 	node = fdt_path_offset(nvtboot_blob, "/memory");
 	if (node < 0) {
-		error("Can't find /memory node in nvtboot DTB");
+		pr_err("Can't find /memory node in nvtboot DTB");
 		hang();
 	}
 	prop = fdt_getprop(nvtboot_blob, node, "reg", &len);
 	if (!prop) {
-		error("Can't find /memory/reg property in nvtboot DTB");
+		pr_err("Can't find /memory/reg property in nvtboot DTB");
 		hang();
 	}
 
@@ -60,9 +60,9 @@ int dram_init(void)
 
 	gd->ram_size = 0;
 	for (i = 0; i < len; i++) {
-		ram_banks[i].start = of_read_number(prop, na);
+		ram_banks[i].start = fdt_read_number(prop, na);
 		prop += na;
-		ram_banks[i].size = of_read_number(prop, ns);
+		ram_banks[i].size = fdt_read_number(prop, ns);
 		prop += ns;
 		gd->ram_size += ram_banks[i].size;
 	}

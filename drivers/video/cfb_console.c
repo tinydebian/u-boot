@@ -72,16 +72,6 @@
 #include <video.h>
 #include <linux/compiler.h>
 
-/*
- * Defines for the CT69000 driver
- */
-#ifdef	CONFIG_VIDEO_CT69000
-
-#define VIDEO_FB_LITTLE_ENDIAN
-#define VIDEO_HW_RECTFILL
-#define VIDEO_HW_BITBLT
-#endif
-
 #if defined(CONFIG_VIDEO_MXS)
 #define VIDEO_FB_16BPP_WORD_SWAP
 #endif
@@ -1866,7 +1856,7 @@ static void *video_logo(void)
 	splash_get_pos(&video_logo_xpos, &video_logo_ypos);
 
 #ifdef CONFIG_SPLASH_SCREEN
-	s = getenv("splashimage");
+	s = env_get("splashimage");
 	if (s != NULL) {
 		ret = splash_screen_prepare();
 		if (ret < 0)
@@ -1968,7 +1958,7 @@ static void *video_logo(void)
 static int cfb_fb_is_in_dram(void)
 {
 	bd_t *bd = gd->bd;
-#if defined(CONFIG_ARM) || defined(CONFIG_AVR32) || defined(CONFIG_NDS32) || \
+#if defined(CONFIG_ARM) || defined(CONFIG_NDS32) || \
 defined(CONFIG_SANDBOX) || defined(CONFIG_X86)
 	ulong start, end;
 	int i;
@@ -2091,7 +2081,8 @@ static int cfg_video_init(void)
 	}
 	eorx = fgx ^ bgx;
 
-	video_clear();
+	if (!CONFIG_IS_ENABLED(NO_FB_CLEAR))
+		video_clear();
 
 #ifdef CONFIG_VIDEO_LOGO
 	/* Plot the logo and get start point of console */

@@ -604,6 +604,8 @@ static void sun8i_emac_board_setup(struct emac_eth_dev *priv)
 {
 	struct sunxi_ccm_reg *ccm = (struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 
+#ifdef CONFIG_MACH_SUNXI_H3_H5
+	/* Only H3/H5 have clock controls for internal EPHY */
 	if (priv->use_internal_phy) {
 		/* Set clock gating for ephy */
 		setbits_le32(&ccm->bus_gate4, BIT(AHB_GATE_OFFSET_EPHY));
@@ -611,6 +613,7 @@ static void sun8i_emac_board_setup(struct emac_eth_dev *priv)
 		/* Deassert EPHY */
 		setbits_le32(&ccm->ahb_reset2_cfg, BIT(AHB_RESET_OFFSET_EPHY));
 	}
+#endif
 
 	/* Set clock gating for emac */
 	setbits_le32(&ccm->ahb_gate0, BIT(AHB_GATE_OFFSET_GMAC));
@@ -776,8 +779,8 @@ static int sun8i_emac_eth_ofdata_to_platdata(struct udevice *dev)
 	int ret = 0;
 #endif
 
-	pdata->iobase = dev_get_addr_name(dev, "emac");
-	priv->sysctl_reg = dev_get_addr_name(dev, "syscon");
+	pdata->iobase = devfdt_get_addr_name(dev, "emac");
+	priv->sysctl_reg = devfdt_get_addr_name(dev, "syscon");
 
 	pdata->phy_interface = -1;
 	priv->phyaddr = -1;
@@ -820,7 +823,7 @@ static int sun8i_emac_eth_ofdata_to_platdata(struct udevice *dev)
 		parse_phy_pins(dev);
 
 #ifdef CONFIG_DM_GPIO
-	if (fdtdec_get_bool(gd->fdt_blob, dev->of_offset,
+	if (fdtdec_get_bool(gd->fdt_blob, dev_of_offset(dev),
 			    "snps,reset-active-low"))
 		reset_flags |= GPIOD_ACTIVE_LOW;
 
@@ -828,7 +831,7 @@ static int sun8i_emac_eth_ofdata_to_platdata(struct udevice *dev)
 				   &priv->reset_gpio, reset_flags);
 
 	if (ret == 0) {
-		ret = fdtdec_get_int_array(gd->fdt_blob, dev->of_offset,
+		ret = fdtdec_get_int_array(gd->fdt_blob, dev_of_offset(dev),
 					   "snps,reset-delays-us",
 					   sun8i_pdata->reset_delays, 3);
 	} else if (ret == -ENOENT) {

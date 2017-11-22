@@ -17,6 +17,7 @@
 #include <samsung/misc.h>
 #include <usb.h>
 #include <usb_mass_storage.h>
+#include <asm/mach-types.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -72,7 +73,7 @@ int checkboard(void)
 }
 #endif
 
-#ifdef CONFIG_GENERIC_MMC
+#ifdef CONFIG_MMC
 int board_mmc_init(bd_t *bis)
 {
 	int i, ret, ret_sd = 0;
@@ -101,7 +102,7 @@ int board_mmc_init(bd_t *bis)
 
 	ret = s5p_mmc_init(0, 4);
 	if (ret)
-		error("MMC: Failed to init MMC:0.\n");
+		pr_err("MMC: Failed to init MMC:0.\n");
 
 	/*
 	 * SD card (T_FLASH) detect and init
@@ -126,7 +127,7 @@ int board_mmc_init(bd_t *bis)
 
 		ret_sd = s5p_mmc_init(2, 4);
 		if (ret_sd)
-			error("MMC: Failed to init SD card (MMC:2).\n");
+			pr_err("MMC: Failed to init SD card (MMC:2).\n");
 	}
 
 	return ret & ret_sd;

@@ -57,9 +57,6 @@ int lpc32xx_eth_initialize(bd_t *bis);
 int macb_eth_initialize(int id, void *regs, unsigned int phy_addr);
 int mcdmafec_initialize(bd_t *bis);
 int mcffec_initialize(bd_t *bis);
-int mpc512x_fec_initialize(bd_t *bis);
-int mpc5xxx_fec_initialize(bd_t *bis);
-int mpc82xx_scc_enet_initialize(bd_t *bis);
 int mvgbe_initialize(bd_t *bis);
 int mvneta_initialize(bd_t *bis, int base_addr, int devnum, int phy_addr);
 int natsemi_initialize(bd_t *bis);
@@ -133,7 +130,12 @@ static inline int pci_eth_init(bd_t *bis)
 	return num;
 }
 
+#ifdef CONFIG_DM_ETH
+struct mii_dev *fec_get_miibus(struct udevice *dev, int dev_id);
+#else
 struct mii_dev *fec_get_miibus(uint32_t base_addr, int dev_id);
+#endif
+
 #ifdef CONFIG_PHYLIB
 struct phy_device;
 int fec_probe(bd_t *bd, int dev_id, uint32_t base_addr,

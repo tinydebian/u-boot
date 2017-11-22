@@ -46,7 +46,6 @@
 /* SPL */
 #define CONFIG_SPL_NO_CPU_SUPPORT_CODE
 #define CONFIG_SPL_START_S_PATH	"arch/arm/cpu/arm926ejs/mxs"
-#define CONFIG_SPL_LDSCRIPT	"arch/arm/cpu/arm926ejs/mxs/u-boot-spl.lds"
 
 /* Memory sizes */
 #define CONFIG_SYS_MALLOC_LEN		0x00400000	/* 4 MB for malloc */
@@ -126,16 +125,6 @@
 #endif
 #endif
 
-/* I2C */
-#ifdef CONFIG_CMD_I2C
-#define CONFIG_SYS_I2C
-#define CONFIG_SYS_I2C_MXS
-#define CONFIG_HARD_I2C
-#ifndef CONFIG_SYS_I2C_SPEED
-#define CONFIG_SYS_I2C_SPEED		400000
-#endif
-#endif
-
 /* LCD */
 #ifdef CONFIG_VIDEO
 #define CONFIG_VIDEO_MXS
@@ -168,7 +157,6 @@
 
 /* USB */
 #ifdef CONFIG_CMD_USB
-#define CONFIG_USB_EHCI
 #define CONFIG_USB_EHCI_MXS
 #define CONFIG_EHCI_IS_TDI
 #endif

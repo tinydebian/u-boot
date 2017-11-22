@@ -11,7 +11,7 @@
 
 #include <linux/sizes.h>
 #include <asm/arch/imx-regs.h>
-#include <asm/imx-common/gpio.h>
+#include <asm/mach-imx/gpio.h>
 
 #ifndef CONFIG_MX7
 #define CONFIG_MX7
@@ -42,7 +42,6 @@
 #define CONFIG_AUTO_COMPLETE
 #define CONFIG_SYS_CBSIZE		512
 #define CONFIG_SYS_MAXARGS		32
-#define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE
 
 #ifndef CONFIG_SYS_DCACHE_OFF
 #endif
@@ -59,7 +58,6 @@
 #define CONFIG_FSL_USDHC
 
 /* Fuses */
-#define CONFIG_CMD_FUSE
 #define CONFIG_MXC_OCOTP
 
 #define CONFIG_ARMV7_SECURE_BASE	0x00900000

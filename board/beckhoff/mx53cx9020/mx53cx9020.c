@@ -9,6 +9,7 @@
  */
 
 #include <common.h>
+#include <dm.h>
 #include <asm/io.h>
 #include <asm/arch/imx-regs.h>
 #include <asm/arch/sys_proto.h>
@@ -16,7 +17,7 @@
 #include <asm/arch/clock.h>
 #include <asm/arch/iomux-mx53.h>
 #include <asm/arch/clock.h>
-#include <asm/imx-common/mx5_video.h>
+#include <asm/mach-imx/mx5_video.h>
 #include <ACEX1K.h>
 #include <netdev.h>
 #include <i2c.h>
@@ -25,8 +26,8 @@
 #include <asm/gpio.h>
 #include <linux/fb.h>
 #include <ipu_pixfmt.h>
+#include <input.h>
 #include <fs.h>
-#include <dm/platdata.h>
 #include <dm/platform_data/serial_mxc.h>
 
 enum LED_GPIOS {

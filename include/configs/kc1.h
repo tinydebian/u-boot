@@ -24,13 +24,6 @@
 #define CONFIG_SYS_PL310_BASE		0x48242000
 
 /*
- * Platform
- */
-
-#define CONFIG_OMAP
-#define CONFIG_OMAP4430
-
-/*
  * Board
  */
 
@@ -61,19 +54,12 @@
 #define CONFIG_SYS_MALLOC_LEN		(1024 * 1024 + CONFIG_ENV_SIZE)
 
 /*
- * GPIO
- */
-
-#define CONFIG_OMAP_GPIO
-
-/*
  * I2C
  */
 
 #define CONFIG_SYS_I2C
 #define CONFIG_SYS_OMAP24_I2C_SPEED	400000
 #define CONFIG_SYS_OMAP24_I2C_SLAVE	1
-#define CONFIG_SYS_I2C_OMAP24XX
 #define CONFIG_I2C_MULTI_BUS
 
 /*
@@ -102,9 +88,6 @@
 #define CONFIG_SYS_SPL_MALLOC_START	0x80208000
 #define CONFIG_SYS_SPL_MALLOC_SIZE	(1024 * 1024)
 
-#define CONFIG_SPL_LDSCRIPT		"arch/arm/mach-omap2/u-boot-spl.lds"
-#define CONFIG_SPL_BOARD_INIT
-
 /*
  * Console
  */
@@ -113,10 +96,7 @@
 
 #define CONFIG_SYS_LONGHELP
 
-#define CONFIG_SYS_MAXARGS	16
 #define CONFIG_SYS_CBSIZE	512
-#define CONFIG_SYS_PBSIZE	(CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) \
-				 + 16)
 
 /*
  * Serial
@@ -139,25 +119,10 @@
 #define CONFIG_USB_MUSB_OMAP2PLUS
 
 /*
- * Fastboot
- */
-
-#define CONFIG_USB_FUNCTION_FASTBOOT
-
-#define CONFIG_FASTBOOT_BUF_ADDR	CONFIG_SYS_LOAD_ADDR
-#define CONFIG_FASTBOOT_BUF_SIZE	0x2000000
-
-#define CONFIG_FASTBOOT_FLASH
-#define CONFIG_FASTBOOT_FLASH_MMC_DEV	0
-
-#define CONFIG_CMD_FASTBOOT
-
-/*
  * Environment
  */
 
 #define CONFIG_ENV_SIZE		(128 * 1024)
-#define CONFIG_ENV_IS_NOWHERE
 
 #define CONFIG_ENV_OVERWRITE
 
@@ -192,8 +157,6 @@
  */
 
 #define CONFIG_SYS_LOAD_ADDR	0x82000000
-
-#define CONFIG_ANDROID_BOOT_IMAGE
 
 #define CONFIG_BOOTCOMMAND \
 	"setenv boot_mmc_part ${kernel_mmc_part}; " \

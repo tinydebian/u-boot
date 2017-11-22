@@ -334,7 +334,7 @@ static int ldpaa_eth_tx(struct eth_device *net_dev, void *buf, int len)
 					&buffer_start, 1);
 	} while (err == -EBUSY);
 
-	if (err < 0) {
+	if (err <= 0) {
 		printf("qbman_swp_acquire() failed\n");
 		return -ENOMEM;
 	}
@@ -587,8 +587,10 @@ static void ldpaa_eth_stop(struct eth_device *net_dev)
 #ifdef CONFIG_PHYLIB
 	if (priv->phydev && bus != NULL)
 		phy_shutdown(priv->phydev);
-	else
+	else {
 		free(priv->phydev);
+		priv->phydev = NULL;
+	}
 #endif
 
 	ldpaa_dpbp_free();

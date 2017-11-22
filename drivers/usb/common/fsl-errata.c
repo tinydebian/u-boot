@@ -9,6 +9,10 @@
 #include <common.h>
 #include <fsl_errata.h>
 #include<fsl_usb.h>
+#if defined(CONFIG_FSL_LSCH2) || defined(CONFIG_FSL_LSCH3) || \
+	defined(CONFIG_ARM)
+#include <asm/arch/clock.h>
+#endif
 
 /* USB Erratum Checking code */
 #if defined(CONFIG_PPC) || defined(CONFIG_ARM)
@@ -198,6 +202,10 @@ bool has_erratum_a010151(void)
 #ifdef CONFIG_ARM64
 	case SVR_LS2080A:
 	case SVR_LS2085A:
+			/* fallthrough */
+	case SVR_LS2088A:
+			/* fallthrough */
+	case SVR_LS2081A:
 	case SVR_LS1046A:
 	case SVR_LS1012A:
 		return IS_SVR_REV(svr, 1, 0);

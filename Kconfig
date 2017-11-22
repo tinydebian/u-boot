@@ -14,6 +14,12 @@ source "arch/Kconfig"
 
 menu "General setup"
 
+config BROKEN
+	bool
+	help
+	  This option cannot be enabled. It is used as dependency
+	  for broken and incomplete features.
+
 config LOCALVERSION
 	string "Local version - append to U-Boot release"
 	help
@@ -60,6 +66,7 @@ config DISTRO_DEFAULTS
 	default y if ARCH_MESON
 	default y if ARCH_ROCKCHIP
 	default n
+	imply USE_BOOTCOMMAND
 	select CMD_BOOTZ if ARM && !ARM64
 	select CMD_BOOTI if ARM64
 	select CMD_DHCP
@@ -94,6 +101,26 @@ config SYS_MALLOC_F_LEN
 	  we can provide a small malloc() pool if needed. Driver model in
 	  particular needs this to operate, so that it can allocate the
 	  initial serial device and any others that are needed.
+
+config SPL_SYS_MALLOC_F_LEN
+        hex "Size of malloc() pool in SPL before relocation"
+        depends on SYS_MALLOC_F
+        default SYS_MALLOC_F_LEN
+        help
+          Before relocation, memory is very limited on many platforms. Still,
+          we can provide a small malloc() pool if needed. Driver model in
+          particular needs this to operate, so that it can allocate the
+          initial serial device and any others that are needed.
+
+config TPL_SYS_MALLOC_F_LEN
+        hex "Size of malloc() pool in TPL before relocation"
+        depends on SYS_MALLOC_F
+        default SYS_MALLOC_F_LEN
+        help
+          Before relocation, memory is very limited on many platforms. Still,
+          we can provide a small malloc() pool if needed. Driver model in
+          particular needs this to operate, so that it can allocate the
+          initial serial device and any others that are needed.
 
 menuconfig EXPERT
 	bool "Configure standard U-Boot features (expert users)"
@@ -138,13 +165,30 @@ config PHYS_64BIT
 	  This can be used not only for 64bit SoCs, but also for
 	  large physical address extention on 32bit SoCs.
 
+config BUILD_ROM
+	bool "Build U-Boot as BIOS replacement"
+	depends on X86
+	help
+	  This option allows to build a ROM version of U-Boot.
+	  The build process generally requires several binary blobs
+	  which are not shipped in the U-Boot source tree.
+	  Please, see doc/README.x86 for details.
+
 endmenu		# General setup
 
 menu "Boot images"
 
+config ANDROID_BOOT_IMAGE
+	bool "Enable support for Android Boot Images"
+	default y if FASTBOOT
+	help
+	  This enables support for booting images which use the Android
+	  image format header.
+
 config FIT
 	bool "Support Flattened Image Tree"
 	select MD5
+	select SHA1
 	help
 	  This option allows you to boot the new uImage structure,
 	  Flattened Image Tree.  FIT is formally a FDT, which can include
@@ -156,6 +200,20 @@ config FIT
 	  verified boot (secure boot using RSA).
 
 if FIT
+
+config FIT_ENABLE_SHA256_SUPPORT
+	bool "Support SHA256 checksum of FIT image contents"
+	select SHA256
+	default y
+	help
+	  Enable this to support SHA256 checksum of FIT image contents. A
+	  SHA256 checksum is a 256-bit (32-byte) hash value used to check that
+	  the image contents have not been corrupted. SHA256 is recommended
+	  for use in secure applications since (as at 2016) there is no known
+	  feasible attack that could produce a 'collision' with differing
+	  input data. Use this for the highest security. Note that only the
+	  SHA256 variant is supported: SHA512 and others are not currently
+	  supported in U-Boot.
 
 config FIT_SIGNATURE
 	bool "Enable signature verification of FIT uImages"
@@ -205,18 +263,22 @@ config FIT_IMAGE_POST_PROCESS
 	  injected into the FIT creation (i.e. the blobs would have been pre-
 	  processed before being added to the FIT image).
 
+if SPL
+
 config SPL_FIT
 	bool "Support Flattened Image Tree within SPL"
 	depends on SPL
+	select SPL_OF_LIBFDT
 
 config SPL_FIT_SIGNATURE
 	bool "Enable signature verification of FIT firmware within SPL"
-	depends on SPL_FIT
 	depends on SPL_DM
+	select SPL_FIT
 	select SPL_RSA
 
 config SPL_LOAD_FIT
 	bool "Enable SPL loading U-Boot as a FIT"
+	select SPL_FIT
 	help
 	  Normally with the SPL framework a legacy image is generated as part
 	  of the build. This contains U-Boot along with information as to
@@ -227,7 +289,7 @@ config SPL_LOAD_FIT
 
 config SPL_FIT_IMAGE_POST_PROCESS
 	bool "Enable post-processing of FIT artifacts after loading by the SPL"
-	depends on SPL_LOAD_FIT && TI_SECURE_DEVICE
+	depends on SPL_LOAD_FIT
 	help
 	  Allows doing any sort of manipulation to blobs after they got extracted
 	  from the U-Boot FIT image like stripping off headers or modifying the
@@ -250,11 +312,14 @@ config SPL_FIT_SOURCE
 config SPL_FIT_GENERATOR
 	string ".its file generator script for U-Boot FIT image"
 	depends on SPL_FIT
+	default "board/sunxi/mksunxi_fit_atf.sh" if SPL_LOAD_FIT && ARCH_SUNXI
 	help
 	  Specifies a (platform specific) script file to generate the FIT
 	  source file used to build the U-Boot FIT image file. This gets
 	  passed a list of supported device tree file stub names to
 	  include in the generated image.
+
+endif # SPL
 
 endif # FIT
 
@@ -303,11 +368,13 @@ config SYS_EXTRA_OPTIONS
 config SYS_TEXT_BASE
 	depends on ARC || X86 || ARCH_UNIPHIER || ARCH_ZYNQMP || \
 		(M68K && !TARGET_ASTRO_MCF5373L) || MICROBLAZE || MIPS || \
-		ARCH_ZYNQ || ARCH_KEYSTONE
+		ARCH_ZYNQ || ARCH_KEYSTONE || ARCH_OMAP2PLUS
 	depends on !EFI_APP
 	hex "Text Base"
 	help
 	  TODO: Move CONFIG_SYS_TEXT_BASE for all the architecture
+
+	default 0x80800000 if ARCH_OMAP2PLUS
 
 
 config SYS_CLK_FREQ
@@ -336,6 +403,8 @@ source "disk/Kconfig"
 
 source "dts/Kconfig"
 
+source "env/Kconfig"
+
 source "net/Kconfig"
 
 source "drivers/Kconfig"
@@ -345,5 +414,3 @@ source "fs/Kconfig"
 source "lib/Kconfig"
 
 source "test/Kconfig"
-
-source "scripts/Kconfig"

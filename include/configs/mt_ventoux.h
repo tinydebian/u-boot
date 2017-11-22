@@ -24,23 +24,15 @@
 #define CONFIG_BOOTFILE		"uImage"
 #define CONFIG_AUTO_COMPLETE
 
-#define CONFIG_OMAP3_GPIO_4
 #define CONFIG_HOSTNAME mt_ventoux
 
 /*
  * Set its own mtdparts, different from common
  */
-#undef MTDIDS_DEFAULT
-#undef MTDPARTS_DEFAULT
-#define MTDIDS_DEFAULT		"nand0=omap2-nand.0"
-#define MTDPARTS_DEFAULT	"mtdparts=omap2-nand.0:512k(MLO)," \
-				"1m(u-boot),256k(env1)," \
-				"256k(env2),8m(ubisystem),-(rootfs)"
 
 /*
  * FPGA
  */
-#define CONFIG_CMD_FPGA_LOADMK
 #define CONFIG_FPGA
 #define CONFIG_FPGA_XILINX
 #define CONFIG_FPGA_SPARTAN3

@@ -13,7 +13,6 @@
 /*
  * High Level Configuration Options
  */
-#define CONFIG_OMAP	/* in a TI OMAP core */
 #define CONFIG_CM_T3517	/* working with CM-T3517 */
 
 #define CONFIG_SYS_TEXT_BASE	0x80008000
@@ -23,8 +22,6 @@
  * Although the default iss 64, we still define it
  * to be on the safe side once the default is changed.
  */
-
-#define CONFIG_EMIF4	/* The chip has EMIF4 controller */
 
 #include <asm/arch/cpu.h>		/* get chip and board defs */
 #include <asm/arch/omap.h>
@@ -80,15 +77,11 @@
 #define CONFIG_SYS_BAUDRATE_TABLE	{4800, 9600, 19200, 38400, 57600,\
 					115200}
 
-#define CONFIG_OMAP_GPIO
-
 /* USB */
 #define CONFIG_USB_MUSB_AM35X
 
 #ifndef CONFIG_USB_MUSB_AM35X
 #define CONFIG_USB_OMAP3
-#define CONFIG_USB_EHCI
-#define CONFIG_USB_EHCI_OMAP
 #define CONFIG_OMAP_EHCI_PHY1_RESET_GPIO 146
 #define CONFIG_OMAP_EHCI_PHY2_RESET_GPIO 147
 #else /* !CONFIG_USB_MUSB_AM35X */
@@ -96,20 +89,12 @@
 #endif /* CONFIG_USB_MUSB_AM35X */
 
 /* commands to include */
-#define CONFIG_CMD_MTDPARTS	/* Enable MTD parts commands */
 #define CONFIG_MTD_DEVICE	/* needed for mtdparts commands */
 #define CONFIG_MTD_PARTITIONS
-#define MTDIDS_DEFAULT		"nand0=nand"
-#define MTDPARTS_DEFAULT	"mtdparts=nand:512k(x-loader),"\
-				"1920k(u-boot),256k(u-boot-env),"\
-				"4m(kernel),-(fs)"
-
-#define CONFIG_CMD_NAND		/* NAND support			*/
 
 #define CONFIG_SYS_I2C
 #define CONFIG_SYS_OMAP24_I2C_SPEED	400000
 #define CONFIG_SYS_OMAP24_I2C_SLAVE	1
-#define CONFIG_SYS_I2C_OMAP34XX
 #define CONFIG_SYS_I2C_EEPROM_ADDR	0x50
 #define CONFIG_SYS_I2C_EEPROM_ADDR_LEN	1
 #define CONFIG_SYS_I2C_EEPROM_BUS	0
@@ -118,7 +103,6 @@
 /*
  * Board NAND Info.
  */
-#define CONFIG_NAND_OMAP_GPMC
 #define CONFIG_SYS_NAND_ADDR		NAND_BASE	/* physical address */
 							/* to access nand */
 #define CONFIG_SYS_NAND_BASE		NAND_BASE	/* physical address */
@@ -189,12 +173,7 @@
 #define CONFIG_SYS_AUTOLOAD		"no"
 #define CONFIG_SYS_LONGHELP		/* undef to save memory */
 #define CONFIG_SYS_CBSIZE		512	/* Console I/O Buffer Size */
-/* Print Buffer Size */
-#define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE + \
-					sizeof(CONFIG_SYS_PROMPT) + 16)
 #define CONFIG_SYS_MAXARGS		32	/* max number of command args */
-/* Boot Argument Buffer Size */
-#define CONFIG_SYS_BARGSIZE		(CONFIG_SYS_CBSIZE)
 
 #define CONFIG_SYS_LOAD_ADDR		(OMAP34XX_SDRC_CS0 + 0x02000000)
 
@@ -223,18 +202,13 @@
 #define CONFIG_SYS_MONITOR_BASE		CONFIG_SYS_FLASH_BASE
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* Reserve 2 sectors */
 
-#define CONFIG_ENV_IS_IN_NAND
-#define SMNAND_ENV_OFFSET		0x260000 /* environment starts here */
-#define CONFIG_ENV_OFFSET		SMNAND_ENV_OFFSET
-#define CONFIG_ENV_ADDR			SMNAND_ENV_OFFSET
+#define CONFIG_ENV_OFFSET		0x260000
+#define CONFIG_ENV_ADDR			0x260000
 
 #if defined(CONFIG_CMD_NET)
 #define CONFIG_DRIVER_TI_EMAC
 #define CONFIG_DRIVER_TI_EMAC_USE_RMII
 #define CONFIG_MII
-#define CONFIG_SMC911X
-#define CONFIG_SMC911X_32_BIT
-#define CONFIG_SMC911X_BASE	(0x2C000000 + (16 << 20))
 #define CONFIG_ARP_TIMEOUT		200UL
 #define CONFIG_NET_RETRY_COUNT		5
 #endif /* CONFIG_CMD_NET */
@@ -250,14 +224,7 @@
 /* Status LED */
 #define GREEN_LED_GPIO			186 /* CM-T3517 Green LED is GPIO186 */
 
-/* GPIO banks */
-#ifdef CONFIG_LED_STATUS
-#define CONFIG_OMAP3_GPIO_6	/* GPIO186 is in GPIO bank 6  */
-#endif
-
 /* Display Configuration */
-#define CONFIG_OMAP3_GPIO_2
-#define CONFIG_OMAP3_GPIO_5
 #define CONFIG_VIDEO_OMAP3
 #define LCD_BPP		LCD_COLOR16
 
@@ -266,17 +233,11 @@
 #define CONFIG_BMP_16BPP
 #define CONFIG_SCF0403_LCD
 
-#define CONFIG_OMAP3_SPI
-
 /* EEPROM */
-#define CONFIG_CMD_EEPROM
 #define CONFIG_ENV_EEPROM_IS_ON_I2C
 #define CONFIG_SYS_I2C_EEPROM_ADDR_LEN		1
 #define CONFIG_SYS_EEPROM_PAGE_WRITE_BITS	4
 #define CONFIG_SYS_EEPROM_PAGE_WRITE_DELAY_MS	5
 #define CONFIG_SYS_EEPROM_SIZE			256
-
-#define CONFIG_CMD_EEPROM_LAYOUT
-#define CONFIG_EEPROM_LAYOUT_HELP_STRING "v1, v2, v3"
 
 #endif /* __CONFIG_H */

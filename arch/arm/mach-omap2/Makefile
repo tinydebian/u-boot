@@ -20,6 +20,7 @@ endif
 endif
 obj-y	+= utils.o
 
+obj-y	+= sysinfo-common.o
 ifneq ($(CONFIG_OMAP44XX)$(CONFIG_OMAP54XX),)
 obj-y	+= hwinit-common.o
 obj-y	+= clocks-common.o
@@ -43,5 +44,7 @@ obj-y	+= boot-common.o
 obj-y	+= lowlevel_init.o
 
 obj-y	+= mem-common.o
+
+obj-y	+= fdt-common.o
 
 obj-$(CONFIG_TI_SECURE_DEVICE) += sec-common.o

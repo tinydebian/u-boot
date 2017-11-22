@@ -64,7 +64,6 @@
 /* SD boot SPL */
 #ifdef CONFIG_SD_BOOT
 #define CONFIG_SPL_FRAMEWORK
-#define CONFIG_SPL_LDSCRIPT		"arch/arm/cpu/armv8/u-boot-spl.lds"
 #define CONFIG_SPL_TARGET		"u-boot-with-spl.bin"
 #define CONFIG_SPL_LIBCOMMON_SUPPORT
 #define CONFIG_SPL_LIBGENERIC_SUPPORT
@@ -104,7 +103,6 @@
 #ifdef CONFIG_NAND_BOOT
 #define CONFIG_SPL_PBL_PAD
 #define CONFIG_SPL_FRAMEWORK
-#define CONFIG_SPL_LDSCRIPT		"arch/arm/cpu/armv8/u-boot-spl.lds"
 #define CONFIG_SPL_TARGET		"u-boot-with-spl.bin"
 #define CONFIG_SPL_LIBCOMMON_SUPPORT
 #define CONFIG_SPL_LIBGENERIC_SUPPORT
@@ -138,10 +136,16 @@
 #define CONFIG_SYS_I2C_MXC_I2C3
 #define CONFIG_SYS_I2C_MXC_I2C4
 
-/* Command line configuration */
-#ifndef SPL_NO_ENV
-#define CONFIG_CMD_ENV
+/* PCIe */
+#define CONFIG_PCIE1		/* PCIE controller 1 */
+#define CONFIG_PCIE2		/* PCIE controller 2 */
+#define CONFIG_PCIE3		/* PCIE controller 3 */
+
+#ifdef CONFIG_PCI
+#define CONFIG_PCI_SCAN_SHOW
 #endif
+
+/* Command line configuration */
 
 /* MMC */
 #ifndef SPL_NO_MMC
@@ -166,23 +170,23 @@
 /*
  * PBL SD boot image should stored at 0x1000(8 blocks), the size of the image is
  * about 1MB (2048 blocks), Env is stored after the image, and the env size is
- * 0x2000 (16 blocks), 8 + 2048 + 16 = 2072, enlarge it to 2080(0x820).
+ * 0x2000 (16 blocks), 8 + 2048 + 16 = 2072, enlarge it to 18432(0x4800).
  */
 #define CONFIG_SYS_QE_FMAN_FW_IN_MMC
-#define CONFIG_SYS_FMAN_FW_ADDR		(512 * 0x820)
+#define CONFIG_SYS_FMAN_FW_ADDR		(512 * 0x4800)
 #elif defined(CONFIG_QSPI_BOOT)
 #define CONFIG_SYS_QE_FW_IN_SPIFLASH
-#define CONFIG_SYS_FMAN_FW_ADDR		0x40300000
+#define CONFIG_SYS_FMAN_FW_ADDR		0x40900000
 #define CONFIG_ENV_SPI_BUS		0
 #define CONFIG_ENV_SPI_CS		0
 #define CONFIG_ENV_SPI_MAX_HZ		1000000
 #define CONFIG_ENV_SPI_MODE		0x03
 #elif defined(CONFIG_NAND_BOOT)
 #define CONFIG_SYS_QE_FMAN_FW_IN_NAND
-#define CONFIG_SYS_FMAN_FW_ADDR		(6 * CONFIG_SYS_NAND_BLOCK_SIZE)
+#define CONFIG_SYS_FMAN_FW_ADDR		(36 * CONFIG_SYS_NAND_BLOCK_SIZE)
 #else
 #define CONFIG_SYS_QE_FMAN_FW_IN_NOR
-#define CONFIG_SYS_FMAN_FW_ADDR		0x60300000
+#define CONFIG_SYS_FMAN_FW_ADDR		0x60900000
 #endif
 #define CONFIG_SYS_QE_FMAN_FW_LENGTH	0x10000
 #define CONFIG_SYS_FDT_PAD		(0x3000 + CONFIG_SYS_QE_FMAN_FW_LENGTH)
@@ -194,46 +198,86 @@
 #define CONFIG_HWCONFIG
 #define HWCONFIG_BUFFER_SIZE		128
 
+#include <config_distro_defaults.h>
+#ifndef CONFIG_SPL_BUILD
+#define BOOT_TARGET_DEVICES(func) \
+	func(MMC, mmc, 0) \
+	func(USB, usb, 0)
+#include <config_distro_bootcmd.h>
+#endif
+
 #ifndef SPL_NO_MISC
 /* Initial environment variables */
 #define CONFIG_EXTRA_ENV_SETTINGS		\
 	"hwconfig=fsl_ddr:bank_intlv=auto\0"	\
-	"loadaddr=0x80100000\0"			\
 	"ramdisk_addr=0x800000\0"		\
 	"ramdisk_size=0x2000000\0"		\
 	"fdt_high=0xffffffffffffffff\0"		\
 	"initrd_high=0xffffffffffffffff\0"	\
+	"fdt_addr=0x64f00000\0"                 \
+	"kernel_addr=0x65000000\0"              \
+	"scriptaddr=0x80000000\0"               \
+	"scripthdraddr=0x80080000\0"		\
+	"fdtheader_addr_r=0x80100000\0"         \
+	"kernelheader_addr_r=0x80200000\0"      \
+	"load_addr=0xa0000000\0"            \
+	"kernel_addr_r=0x81000000\0"            \
+	"fdt_addr_r=0x90000000\0"               \
+	"ramdisk_addr_r=0xa0000000\0"           \
 	"kernel_start=0x1000000\0"		\
 	"kernel_load=0xa0000000\0"		\
 	"kernel_size=0x2800000\0"		\
+	"kernel_addr_sd=0x8000\0"		\
+	"kernel_size_sd=0x14000\0"		\
 	"console=ttyS0,115200\0"                \
-		MTDPARTS_DEFAULT "\0"
+	 CONFIG_MTDPARTS_DEFAULT "\0"		\
+	BOOTENV					\
+	"boot_scripts=ls1046ardb_boot.scr\0"    \
+	"boot_script_hdr=hdr_ls1046ardb_bs.out\0"	\
+	"scan_dev_for_boot_part="               \
+		"part list ${devtype} ${devnum} devplist; "   \
+		"env exists devplist || setenv devplist 1; "  \
+		"for distro_bootpart in ${devplist}; do "     \
+		  "if fstype ${devtype} "                  \
+			"${devnum}:${distro_bootpart} "      \
+			"bootfstype; then "                  \
+			"run scan_dev_for_boot; "            \
+		  "fi; "                                   \
+		"done\0"                                   \
+	"scan_dev_for_boot="				  \
+		"echo Scanning ${devtype} "		  \
+				"${devnum}:${distro_bootpart}...; "  \
+		"for prefix in ${boot_prefixes}; do "	  \
+			"run scan_dev_for_scripts; "	  \
+		"done;"					  \
+		"\0"					  \
+	"boot_a_script="				  \
+		"load ${devtype} ${devnum}:${distro_bootpart} "  \
+			"${scriptaddr} ${prefix}${script}; "    \
+		"env exists secureboot && load ${devtype} "     \
+			"${devnum}:${distro_bootpart} "		\
+			"${scripthdraddr} ${prefix}${boot_script_hdr} " \
+			"&& esbc_validate ${scripthdraddr};"    \
+		"source ${scriptaddr}\0"	  \
+	"qspi_bootcmd=echo Trying load from qspi..;"      \
+		"sf probe && sf read $load_addr "         \
+		"$kernel_start $kernel_size && bootm $load_addr#$board\0" \
+	"sd_bootcmd=echo Trying load from SD ..;"	\
+		"mmcinfo; mmc read $load_addr "		\
+		"$kernel_addr_sd $kernel_size_sd && "	\
+		"bootm $load_addr#$board\0"
 
-#define CONFIG_BOOTARGS			"console=ttyS0,115200 root=/dev/ram0 " \
-					"earlycon=uart8250,mmio,0x21c0500 " \
-					MTDPARTS_DEFAULT
 #endif
 
 /* Monitor Command Prompt */
 #define CONFIG_SYS_CBSIZE		512	/* Console I/O Buffer Size */
-#define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE + \
-					sizeof(CONFIG_SYS_PROMPT) + 16)
-#define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE /* Boot args buffer */
 #define CONFIG_SYS_LONGHELP
-
-#ifndef SPL_NO_MISC
-#define CONFIG_CMDLINE_EDITING		1
-#endif
 
 #define CONFIG_AUTO_COMPLETE
 #define CONFIG_SYS_MAXARGS		64	/* max command args */
 
 #define CONFIG_SYS_BOOTM_LEN   (64 << 20)      /* Increase max gunzip size */
 
-/* Hash command with SHA acceleration supported in hardware */
-#ifdef CONFIG_FSL_CAAM
-#define CONFIG_CMD_HASH
-#define CONFIG_SHA_HW_ACCEL
-#endif
+#include <asm/arch/soc.h>
 
 #endif /* __LS1046A_COMMON_H */

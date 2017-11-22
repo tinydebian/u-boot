@@ -17,6 +17,7 @@
 #include <asm/emif.h>
 #include <twl6030.h>
 #include "kc1.h"
+#include <asm/mach-types.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -117,8 +118,8 @@ int misc_init_r(void)
 	}
 
 	if (reboot_mode[0] > 0 && isascii(reboot_mode[0])) {
-		if (!getenv("reboot-mode"))
-			setenv("reboot-mode", (char *)reboot_mode);
+		if (!env_get("reboot-mode"))
+			env_set("reboot-mode", (char *)reboot_mode);
 	}
 
 	omap_reboot_mode_clear();

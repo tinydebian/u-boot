@@ -49,10 +49,12 @@ config TARGET_MPC8349EMDS
 
 config TARGET_MPC8349ITX
 	bool "Support MPC8349ITX"
+	imply CMD_IRQ
 
 config TARGET_MPC837XEMDS
 	bool "Support MPC837XEMDS"
 	select BOARD_EARLY_INIT_F
+	imply CMD_SATA
 
 config TARGET_MPC837XERDB
 	bool "Support MPC837XERDB"
@@ -88,6 +90,7 @@ config TARGET_HRCON
 config TARGET_STRIDER
 	bool "Support strider"
 	select SYS_FSL_ERRATUM_ESDHC111
+	imply CMD_PCA953X
 
 endchoice
 

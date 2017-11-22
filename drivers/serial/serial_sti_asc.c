@@ -1,10 +1,10 @@
 /*
  * Support for Serial I/O using STMicroelectronics' on-chip ASC.
  *
- *  Copyright (c) 2017
- *  Patrice Chotard <patrice.chotard@st.com>
+ * Copyright (C) 2017, STMicroelectronics - All Rights Reserved
+ * Author(s): Patrice Chotard, <patrice.chotard@st.com> for STMicroelectronics.
  *
- * SPDX-License-Identifier:	GPL-2.0
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -170,7 +170,7 @@ static int sti_asc_serial_probe(struct udevice *dev)
 	unsigned long val;
 	fdt_addr_t base;
 
-	base = dev_get_addr(dev);
+	base = devfdt_get_addr(dev);
 	if (base == FDT_ADDR_T_NONE)
 		return -EINVAL;
 
