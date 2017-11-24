@@ -16,6 +16,7 @@
 #define CPU_TYPE_H5      (0x01)            // H5-CPUID=0x01? NOT reliable
 
 #define BOARD_NAME_LENGTH                 (32)
+
 #define BOARD_TYPE_NANOPI_M1              (0)
 #define BOARD_TYPE_NANOPI_NEO             (1)
 #define BOARD_TYPE_NANOPI_NEO_AIR         (2)
@@ -23,6 +24,12 @@
 #define BOARD_TYPE_NANOPI_DUO             (4)
 #define BOARD_TYPE_NANOPI_NEO_CORE        (5)
 #define BOARD_TYPE_NANOPI_K1              (6)
+
+#define BOARD_TYPE_NANOPI_NEO_CORE2       (0)       // 00
+#define BOARD_TYPE_NANOPI_NEO2            (1)       // 01
+#define BOARD_TYPE_NANOPI_NEO_PLUS2       (2)       // 10
+#define BOARD_TYPE_NANOPI_M1_PLUS2        (3)       // 11
+#define BOARD_TYPE_NANOPI_K1_PLUS         (4)       // (PG12=0)11
 
 int nanopi_get_board(void);
 extern char nanopi_board[][32];

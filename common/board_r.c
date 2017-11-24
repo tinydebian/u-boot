@@ -825,6 +825,14 @@ int nanopi_get_board(void)
 	case CPU_TYPE_H5:			// don't really rely on this(H5-CPUID=0x01?)
 		boardtype = nanopi_read_gpio();
 		env_set("cpu", "h5");	// nowhere is using env-cpu=h5, so it doesn't matter.
+		// nanopi-m1-plus2 or nanopi-k1-plus
+		if (boardtype == BOARD_TYPE_NANOPI_M1_PLUS2) {
+			strcpy(pin[0], "PG12");
+			extra_gpio = nanopi_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DISABLE);
+			if (extra_gpio == 0)
+				boardtype = BOARD_TYPE_NANOPI_K1_PLUS;
+			break;
+		}
 		break;
 	default:					// dafault is H3.boot.src will use env-cpu=h3
 		boardtype = nanopi_read_gpio();
@@ -865,7 +873,7 @@ int nanopi_get_board(void)
 	if (boardtype>=0 && boardtype<BOARD_TYPE_MAX) {
 		return boardtype;
 	} else {
-		printf("UNKNOWN BOARDTYPE\n");
+		printf("UNKNOWN BOARDTYPE: boardtype=%d cputype=%d\n", boardtype, cputype);
 		hang();
 	}
 	return boardtype;
