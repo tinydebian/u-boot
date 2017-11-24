@@ -73,6 +73,8 @@
 #define SDRAM_OFFSET(x) 0x4##x
 #define CONFIG_SYS_SDRAM_BASE		0x40000000
 #define CONFIG_SYS_LOAD_ADDR		0x42000000 /* default load address */
+#define CONFIG_SYS_MEMTEST_START    0x40000000
+#define CONFIG_SYS_MEMTEST_END      (0x4a000000-1)
 /* V3s do not have enough memory to place code at 0x4a000000 */
 #ifndef CONFIG_MACH_SUN8I_V3S
 #define CONFIG_SYS_TEXT_BASE		0x4a000000
