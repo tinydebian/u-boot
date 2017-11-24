@@ -56,6 +56,10 @@
 #include <linux/err.h>
 #include <efi_loader.h>
 
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
+#include <friendlyelec/boardtype.h>
+#endif
+
 DECLARE_GLOBAL_DATA_PTR;
 
 ulong monitor_flash_len;
@@ -483,12 +487,12 @@ static int initr_env(void)
 	return 0;
 }
 
-#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
 #define SUNXI_BOOTED_FROM_MMC0	0
 #define SUNXI_BOOTED_FROM_MMC2	2
 #ifdef CONFIG_MACH_SUN8I_H3_NANOPI
 #define SPL_ADDR		0x0
-#elif defined(CONFIG_MACH_SUN8I_H5_NANOPI)
+#elif defined(CONFIG_MACH_SUN50I_H5_NANOPI)
 #define SPL_ADDR		0x10000
 #endif
 static int boot_source;
@@ -701,7 +705,43 @@ static int initr_kbd(void)
 }
 #endif
 
-#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI)
+char nanopi_board[][BOARD_NAME_LENGTH] = {
+    "nanopi-m1",                    
+    "nanopi-neo",               
+    "nanopi-neo-air",
+    "nanopi-m1-plus",
+    "nanopi-duo",
+    "nanopi-neo-core",
+    "nanopi-k1",
+};
+int nanopi_dram_clk[] = {
+    576 /* NanoPi-M1 */,
+    408 /* NanoPi-NEO */,
+    408 /* NanoPi-NEO-Air */,
+    576 /* NanoPi-M1-Plus */,
+    408 /* NanoPi-Duo */,
+    408 /* NanoPi-NEO-Core */,
+    576 /* NanoPi-K1 */,
+};
+#elif defined(CONFIG_MACH_SUN50I_H5_NANOPI)
+char nanopi_board[][BOARD_NAME_LENGTH] = {
+    "nanopi-neo-core2",
+    "nanopi-neo2",
+    "nanopi-neo-plus2",
+    "nanopi-m1-plus2",
+    "nanopi-k1-plus",
+};
+int nanopi_dram_clk[] = {
+    504 /* NanoPi-NEO-Core2 */,
+    504 /* NanoPi-NEO2 */,
+    504 /* NanoPi-NEO-Plus2 */,
+    504 /* NanoPi-M1-Plus2 */,
+    504 /* NanoPi-K1-Plus */,
+};
+#endif
+
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
 #include <asm/arch/gpio.h>
 #include <asm/gpio.h>
 int nanopi_read_gpio(void)
@@ -776,7 +816,6 @@ int nanopi_get_board(void)
 	if (ret == 0 && sid[0] != 0) {
 		cputype = sid[0] & 0xff;
 	}
-	printf("cputype is 0x%x\n", cputype);
 	switch (cputype) {
 	case CPU_TYPE_H2_1:
 	case CPU_TYPE_H2_2:
@@ -811,7 +850,7 @@ int nanopi_get_board(void)
 				break;
 			}
 
-			// nanopi-m1-plus or nanopi-k1(h3) ?
+			// nanopi-m1-plus or nanopi-k1
 			if (boardtype == BOARD_TYPE_NANOPI_M1_PLUS) {
 				strcpy(pin[0], "PD6");
 				extra_gpio = nanopi_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DISABLE);
@@ -833,33 +872,29 @@ int nanopi_get_board(void)
 }
 #endif
 
-#if defined(CONFIG_MACH_SUN8I_H3_NANOPI)
-static char board[BOARD_TYPE_MAX][32] = {
-	"nanopi-m1",			
-	"nanopi-neo",
-	"nanopi-neo-air",
-	"nanopi-m1-plus",
-	"nanopi-duo",
-	"nanopi-neo-core",
-	"nanopi-k1",
-};
-#elif defined(CONFIG_MACH_SUN8I_H5_NANOPI)
-static char board[4][32] = {
-	"nanopi-neo-core2",
-	"nanopi-neo2",
-	"nanopi-neo-plus2",
-	"nanopi-m1-plus2",
-};
-#endif
-#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
 static int setup_env_boardtype(void)
 {
 	int boardtype = -1;
 	boardtype = nanopi_get_board();
-	if (board[boardtype][0] == '\0' || env_set("board", board[boardtype])) {
+	if (nanopi_board[boardtype][0] == '\0' || env_set("board", nanopi_board[boardtype])) {
 		printf("fail to env_set board\n");
 		hang();
 	}
+	return 0;
+}
+
+static int dram_set_clk(void)
+{
+	int boardtype = -1;
+	boardtype = nanopi_get_board();
+	if (nanopi_board[boardtype][0] == '\0') {
+		printf("invalid boardtype %d\n", boardtype);
+		hang();
+	}
+	void clock_set_pll5(unsigned int clk, bool sigma_delta_enable);
+	printf("DRAM clock:  %dMHz\n", nanopi_dram_clk[boardtype]);
+	clock_set_pll5(nanopi_dram_clk[boardtype] * 2 * 1000000, false);
 	return 0;
 }
 #endif
@@ -986,7 +1021,7 @@ static init_fnc_t init_sequence_r[] = {
 	initr_mmc,
 #endif
 	initr_env,
-#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
 	init_env_boot_mmc,
 #endif
 #ifdef CONFIG_SYS_BOOTPARAMS_LEN
@@ -1083,8 +1118,9 @@ static init_fnc_t init_sequence_r[] = {
 #if defined(CONFIG_SPARC)
 	prom_init,
 #endif
-#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
 	setup_env_boardtype,
+	dram_set_clk,
 #endif
 	run_main_loop,
 };

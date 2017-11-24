@@ -190,7 +190,7 @@ config MACH_SUN50I_H5
 
 endchoice
 
-config MACH_SUN8I_H5_NANOPI
+config MACH_SUN50I_H5_NANOPI
     bool "sun50i (Allwinner H5 Nanopi)"
     default n
 

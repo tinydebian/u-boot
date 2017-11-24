@@ -499,115 +499,6 @@ int board_mmc_init(bd_t *bis)
 #endif
 
 #ifdef CONFIG_SPL_BUILD
-#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
-int nanopi_spl_read_gpio(void)
-{
-	int ret = -1, gpio = 0;
-	char pin_label[16];
-	char pin[2][8] = {
-		"PC4",
-		"PC7",
-	};	
-	int i, pin_num, id_pin, pin_value;
-	
-	pin_num = sizeof(pin) / sizeof(pin[0]);
-	for (i=0; i<pin_num; i++) {
-		memset(pin_label, 0, sizeof(pin_label));
-		sprintf(pin_label, "boardid_%d", i);
-		id_pin = sunxi_name_to_gpio(pin[i]);
-		ret = gpio_request(id_pin, pin_label);
-		if (!ret) {
-			gpio_direction_input(id_pin);
-			pin_value = gpio_get_value(id_pin);
-			gpio |= pin_value<<i;
-			gpio_free(id_pin);
-		} else {
-			printf("fail to request gpio %d\n", id_pin);
-			hang(); 
-		}
-	}
-	return gpio;
-}
-
-int nanopi_spl_read_extra_gpio(char pin_name[][8], int num, int pull)
-{
-	int ret = -1, gpio = 0;
-	char pin_label[16];
-	char pin[8][8];
-	int i, id_pin, pin_value, old_func;
-
-	for (i=0; i<num; i++) {
-		memset(pin_label, 0, sizeof(pin_label));
-		sprintf(pin_label, "boardid_%d", i);
-		strcpy(pin[i], pin_name[i]);
-		id_pin = sunxi_name_to_gpio(pin[i]);
-		ret = gpio_request(id_pin, pin_label);
-		if (!ret) {
-			old_func = sunxi_gpio_get_cfgpin(id_pin);	// store func
-			gpio_direction_input(id_pin);
-			sunxi_gpio_set_pull(id_pin, pull);
-			mdelay(2);
-			pin_value = gpio_get_value(id_pin);
-			gpio |= pin_value<<i;
-			sunxi_gpio_set_cfgpin(id_pin, old_func);    // resotre func
-			gpio_free(id_pin);
-		} else {
-			printf("fail to request gpio %d\n", id_pin);
-			hang(); 
-		}
-	}
-	return gpio;
-}
-
-int nanopi_spl_get_board(void)
-{
-	int ret = -1, boardtype = -1, cputype = -1;
-	unsigned int sid[4];
-	int extra_gpio;
-	char pin[8][8];
-	
-	ret = sunxi_get_sid(sid);
-	if (ret == 0 && sid[0] != 0) {
-		cputype = sid[0] & 0xff;
-	}
-	switch (cputype) {
-	case CPU_TYPE_H2_1:
-	case CPU_TYPE_H2_2:
-		boardtype = BOARD_TYPE_NANOPI_DUO;						
-		break;
-	default:		// H3 & H5
-		boardtype = nanopi_spl_read_gpio();
-
-		// nanopi-neo or nanopi-neo-core ?
-		if (boardtype == BOARD_TYPE_NANOPI_NEO ) {
-			strcpy(pin[0], "PC6");
-			extra_gpio = nanopi_spl_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DOWN);   // unreliable gpio except nanopi-neo-core. Don't count on this gpio.
-			if (extra_gpio == 1)
-				boardtype = BOARD_TYPE_NANOPI_NEO_CORE;
-			break;
-		}
-
-		// nanopi-m1-plus or nanopi-k1(h3) ?
-		if (boardtype == BOARD_TYPE_NANOPI_M1_PLUS) {
-			strcpy(pin[0], "PD6");
-			extra_gpio = nanopi_spl_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DISABLE);   // unreliable gpio except nanopi-neo-core. Don't count on this gpio.
-			if (extra_gpio == 1)
-				boardtype = BOARD_TYPE_NANOPI_K1;
-			break;
-		}
-		
-		break;
-	}
-	if (boardtype>=0 && boardtype<BOARD_TYPE_MAX) {
-		return boardtype;
-	} else {
-		printf("SPL: UNKNOWN BOARDTYPE\n");
-		hang();
-	}
-	return boardtype;
-}
-#endif
-
 void sunxi_board_init(void)
 {
 	int power_failed = 0;
@@ -670,33 +561,9 @@ void sunxi_board_init(void)
 	power_failed |= axp_set_sw(IS_ENABLED(CONFIG_AXP_SW_ON));
 #endif
 #endif
-#if defined(CONFIG_MACH_SUN8I_H3_NANOPI)
-	char board[BOARD_TYPE_MAX][32] = {
-		"Nanopi M1",
-		"Nanopi NEO",
-		"Nanopi NEO Air",
-		"Nanopi M1 Plus",
-		"Nanopi Duo",
-		"Nanopi NEO Core",
-		"Nanopi K1",
-	};
-#elif defined(CONFIG_MACH_SUN8I_H5_NANOPI)
-	char board[BOARD_TYPE_MAX][32] = {
-		"Nanopi NEO Core2",
-		"Nanopi NEO2",
-		"Nanopi NEO Plus2",
-		"Nanopi M1 Plus2",
-	};
-#endif
-#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
-	int boardtype = -1;
-	if ((boardtype = nanopi_spl_get_board()) >= 0) {
-		printf("BOARD: %s id=%d\n", board[boardtype], boardtype);
-	}
-#endif
 	printf("DRAM:");
 	gd->ram_size = sunxi_dram_init();
-	printf(" %d MiB\n", (int)(gd->ram_size >> 20));
+	printf(" %d MiB(%dMHz)\n", (int)(gd->ram_size >> 20), CONFIG_DRAM_CLK);
 	if (!gd->ram_size)
 		hang();
 
@@ -828,7 +695,7 @@ static void setup_environment(const void *fdt)
 			mac_addr[5] = (sid[3] >>  0) & 0xff;
 
 			eth_env_set_enetaddr(ethaddr, mac_addr);
-#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
 			char mac_node[32];
 			sprintf(mac_node, "[%x %x %x %x %x %x]", \
 								mac_addr[0], mac_addr[1], \
