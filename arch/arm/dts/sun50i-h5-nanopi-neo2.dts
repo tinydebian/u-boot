@@ -48,7 +48,7 @@
 #include <dt-bindings/gpio/gpio.h>
 
 / {
-	model = "FriendlyARM NanoPi NEO 2";
+	model = "FriendlyElec NanoPi H5";
 	compatible = "friendlyarm,nanopi-neo2", "allwinner,sun50i-h5";
 
 	aliases {
