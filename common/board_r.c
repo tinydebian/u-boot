@@ -809,7 +809,6 @@ int nanopi_get_board(void)
 	unsigned int sid[4];
 	int extra_gpio;
 	int has_emmc = 0;
-	const char *model = fdt_getprop(gd->fdt_blob, 0, "model", NULL);
 	char pin[8][8];
 	
 	ret = sunxi_get_sid(sid);
@@ -837,37 +836,36 @@ int nanopi_get_board(void)
 	default:					// dafault is H3.boot.src will use env-cpu=h3
 		boardtype = nanopi_read_gpio();
 		env_set("cpu", "h3");	
-		if (!strcasecmp(model, "NanoPi H3")) { // make sure this is really a H3-Uboot
-			// nanopi-neo or nanopi-neo-core ?
-			if (boardtype == BOARD_TYPE_NANOPI_NEO) {
-				strcpy(pin[0], "PC6");
-				extra_gpio = nanopi_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DOWN);; 
-				switch (boot_source) {
-				case SUNXI_BOOTED_FROM_MMC0:
-					has_emmc = !run_command("mmc dev 1", 0);
-					run_command("mmc dev 0", 0);
-					break;
-				case SUNXI_BOOTED_FROM_MMC2:
-					has_emmc = 1;
-					break;
-				}
-				printf("eMMC %s, PC6=%d\n", has_emmc?"exist":"not exist", extra_gpio);
-
-				if (extra_gpio == 1 || has_emmc == 1)
-					boardtype = BOARD_TYPE_NANOPI_NEO_CORE;
+		// nanopi-neo or nanopi-neo-core ?
+		if (boardtype == BOARD_TYPE_NANOPI_NEO) {
+			strcpy(pin[0], "PC6");
+			extra_gpio = nanopi_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DOWN);; 
+			switch (boot_source) {
+			case SUNXI_BOOTED_FROM_MMC0:
+				printf("Detecting eMMC...\n");
+				has_emmc = !run_command("mmc dev 1", 0);
+				run_command("mmc dev 0", 0);
+				break;
+			case SUNXI_BOOTED_FROM_MMC2:
+				has_emmc = 1;
 				break;
 			}
+			printf("eMMC %s, PC6=%d\n", has_emmc?"exist":"not exist", extra_gpio);
 
-			// nanopi-m1-plus or nanopi-k1
-			if (boardtype == BOARD_TYPE_NANOPI_M1_PLUS) {
-				strcpy(pin[0], "PD6");
-				extra_gpio = nanopi_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DISABLE);
-				if (extra_gpio == 1)
-					boardtype = BOARD_TYPE_NANOPI_K1;
-				break;
-			}
-
+			if (extra_gpio == 1 || has_emmc == 1)
+				boardtype = BOARD_TYPE_NANOPI_NEO_CORE;
+			break;
 		}
+
+		// nanopi-m1-plus or nanopi-k1
+		if (boardtype == BOARD_TYPE_NANOPI_M1_PLUS) {
+			strcpy(pin[0], "PD6");
+			extra_gpio = nanopi_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DISABLE);
+			if (extra_gpio == 1)
+				boardtype = BOARD_TYPE_NANOPI_K1;
+			break;
+		}
+
 		break;
 	}	
 	if (boardtype>=0 && boardtype<BOARD_TYPE_MAX) {
@@ -881,11 +879,11 @@ int nanopi_get_board(void)
 #endif
 
 #if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
+int npi_boardtype = -1;
 static int setup_env_boardtype(void)
 {
-	int boardtype = -1;
-	boardtype = nanopi_get_board();
-	if (nanopi_board[boardtype][0] == '\0' || env_set("board", nanopi_board[boardtype])) {
+	npi_boardtype = nanopi_get_board();
+	if (nanopi_board[npi_boardtype][0] == '\0' || env_set("board", nanopi_board[npi_boardtype])) {
 		printf("fail to env_set board\n");
 		hang();
 	}
