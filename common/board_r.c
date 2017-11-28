@@ -715,6 +715,7 @@ char nanopi_board[][BOARD_NAME_LENGTH] = {
     "nanopi-neo-core",
     "nanopi-k1",
 };
+#if 0
 int nanopi_dram_clk[] = {
     576 /* NanoPi-M1 */,
     408 /* NanoPi-NEO */,
@@ -724,6 +725,7 @@ int nanopi_dram_clk[] = {
     408 /* NanoPi-NEO-Core */,
     576 /* NanoPi-K1 */,
 };
+#endif
 #elif defined(CONFIG_MACH_SUN50I_H5_NANOPI)
 char nanopi_board[][BOARD_NAME_LENGTH] = {
     "nanopi-neo-core2",
@@ -732,6 +734,7 @@ char nanopi_board[][BOARD_NAME_LENGTH] = {
     "nanopi-m1-plus2",
     "nanopi-k1-plus",
 };
+#if 0
 int nanopi_dram_clk[] = {
     504 /* NanoPi-NEO-Core2 */,
     504 /* NanoPi-NEO2 */,
@@ -739,6 +742,7 @@ int nanopi_dram_clk[] = {
     504 /* NanoPi-M1-Plus2 */,
     504 /* NanoPi-K1-Plus */,
 };
+#endif
 #endif
 
 #if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
@@ -892,15 +896,7 @@ static int setup_env_boardtype(void)
 
 static int dram_set_clk(void)
 {
-	int boardtype = -1;
-	boardtype = nanopi_get_board();
-	if (nanopi_board[boardtype][0] == '\0') {
-		printf("invalid boardtype %d\n", boardtype);
-		hang();
-	}
-	void clock_set_pll5(unsigned int clk, bool sigma_delta_enable);
-	printf("DRAM clock:  %dMHz\n", nanopi_dram_clk[boardtype]);
-	clock_set_pll5(nanopi_dram_clk[boardtype] * 2 * 1000000, false);
+	// TODO
 	return 0;
 }
 #endif
