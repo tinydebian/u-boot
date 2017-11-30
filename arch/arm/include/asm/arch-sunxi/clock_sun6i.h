@@ -496,6 +496,7 @@ struct sunxi_ccm_reg {
 #define CCM_SEC_SWITCH_PLL_NONSEC	(1 << 0)
 
 #ifndef __ASSEMBLY__
+unsigned int clock_get_pll1(void);
 void clock_set_pll1(unsigned int hz);
 void clock_set_pll3(unsigned int hz);
 void clock_set_pll3_factors(int m, int n);

@@ -891,6 +891,7 @@ static int setup_env_boardtype(void)
 		printf("fail to env_set board\n");
 		hang();
 	}
+	printf("BOARD: %s\n", nanopi_board[npi_boardtype]);
 	return 0;
 }
 

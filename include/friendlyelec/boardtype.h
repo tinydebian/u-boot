@@ -33,7 +33,6 @@
 
 int nanopi_get_board(void);
 extern char nanopi_board[][32];
-extern int nanopi_dram_clk[];
 #endif
 
 #endif
