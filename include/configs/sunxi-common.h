@@ -148,12 +148,16 @@
 #endif
 
 #if defined(CONFIG_ENV_IS_IN_MMC)
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
+#define CONFIG_SYS_MMC_ENV_DEV		0	/* first detected MMC controller */
+#else
 #if CONFIG_MMC_SUNXI_SLOT_EXTRA != -1
 /* If we have two devices (most likely eMMC + MMC), favour the eMMC */
 #define CONFIG_SYS_MMC_ENV_DEV		1
 #else
 /* Otherwise, use the only device we have */
 #define CONFIG_SYS_MMC_ENV_DEV		0
+#endif
 #endif
 #define CONFIG_SYS_MMC_MAX_DEVICE	4
 #elif defined(CONFIG_ENV_IS_NOWHERE)
@@ -384,6 +388,13 @@ extern int soft_i2c_gpio_scl;
 
 #ifdef CONFIG_MMC
 #if CONFIG_MMC_SUNXI_SLOT_EXTRA != -1
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
+#define BOOTENV_DEV_MMC_AUTO(devtypeu, devtypel, instance)		\
+	BOOTENV_DEV_MMC(MMC, mmc, 0)					\
+	BOOTENV_DEV_MMC(MMC, mmc, 1)					\
+	"bootcmd_mmc_auto="						\
+		"run bootcmd_mmc0\0"
+#else
 #define BOOTENV_DEV_MMC_AUTO(devtypeu, devtypel, instance)		\
 	BOOTENV_DEV_MMC(MMC, mmc, 0)					\
 	BOOTENV_DEV_MMC(MMC, mmc, 1)					\
@@ -395,6 +406,7 @@ extern int soft_i2c_gpio_scl;
 			"run bootcmd_mmc0; "				\
 			"run bootcmd_mmc1; "				\
 		"fi\0"
+#endif
 
 #define BOOTENV_DEV_NAME_MMC_AUTO(devtypeu, devtypel, instance) \
 	"mmc_auto "
