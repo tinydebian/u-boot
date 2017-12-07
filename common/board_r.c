@@ -883,6 +883,17 @@ int nanopi_get_board(void)
 #endif
 
 #if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
+static int print_sid(void)
+{
+	unsigned int sid[4];
+	int ret;
+
+	ret = sunxi_get_sid(sid);
+	if (ret == 0 && sid[0] != 0) {
+		printf("SID: %x-%x-%x-%x\n", sid[0], sid[1], sid[1], sid[2]);
+	}
+	return 0;
+}
 int npi_boardtype = -1;
 static int setup_env_boardtype(void)
 {
@@ -1122,6 +1133,7 @@ static init_fnc_t init_sequence_r[] = {
 	prom_init,
 #endif
 #if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
+	print_sid,
 	setup_env_boardtype,
 	dram_set_clk,
 #endif
