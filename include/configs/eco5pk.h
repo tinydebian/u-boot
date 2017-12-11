@@ -15,8 +15,6 @@
 
 #include "tam3517-common.h"
 
-#undef CONFIG_USB_EHCI
-#undef CONFIG_USB_EHCI_OMAP
 #undef CONFIG_USB_OMAP3
 
 /* Our console port is port3 */
@@ -36,12 +34,6 @@
 /*
  * Set its own mtdparts, different from common
  */
-#undef MTDIDS_DEFAULT
-#undef MTDPARTS_DEFAULT
-#define MTDIDS_DEFAULT		"nand0=omap2-nand.0"
-#define MTDPARTS_DEFAULT	"mtdparts=omap2-nand.0:512k(xloader-nand)," \
-				"1024k(uboot-nand),256k(params-nand)," \
-				"5120k(kernel),-(ubifs)"
 
 /*
  * The arithmetic in tam3517.h is wrong for us and the kernel gets overwritten.
@@ -53,7 +45,7 @@
 #define	CONFIG_EXTRA_ENV_SETTINGS	CONFIG_TAM3517_SETTINGS \
 	"install_kernel=if dhcp $bootfile; then nand erase kernel;" \
 				"nand write $fileaddr kernel; fi\0" \
-	"mtdparts="MTDPARTS_DEFAULT"\0" \
+	"mtdparts="CONFIG_MTDPARTS_DEFAULT"\0" \
 	"serverip=192.168.142.60\0"
 
 #endif /* __CONFIG_H */

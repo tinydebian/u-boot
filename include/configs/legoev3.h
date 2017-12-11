@@ -143,14 +143,11 @@
  */
 #define CONFIG_BOOTFILE		"uImage" /* Boot file name */
 #define CONFIG_SYS_CBSIZE	1024 /* Console I/O Buffer Size	*/
-#define CONFIG_SYS_PBSIZE	(CONFIG_SYS_CBSIZE+sizeof(CONFIG_SYS_PROMPT)+16)
-#define CONFIG_SYS_MAXARGS	16 /* max number of command args */
 #define CONFIG_SYS_BARGSIZE	CONFIG_SYS_CBSIZE /* Boot Args Buffer Size */
 #define CONFIG_SYS_LOAD_ADDR	(PHYS_SDRAM_1 + 0x700000)
 #define CONFIG_AUTO_COMPLETE
 #define CONFIG_CMDLINE_EDITING
 #define CONFIG_SYS_LONGHELP
-#define CONFIG_CRC32_VERIFY
 #define CONFIG_MX_CYCLIC
 
 /*
@@ -198,21 +195,17 @@
 	"loadbootscr=fatload mmc 0 ${bootscraddr} boot.scr\0" \
 	"bootscript=source ${bootscraddr}\0" \
 
-/*
- * U-Boot commands
- */
-#define CONFIG_CMD_SAVES
-
 #ifdef CONFIG_CMD_BDI
 #define CONFIG_CLOCKS
 #endif
 
-#define CONFIG_ENV_IS_NOWHERE
 #define CONFIG_ENV_SIZE		(16 << 10)
 
 /* additions for new relocation code, must added to all boards */
 #define CONFIG_SYS_SDRAM_BASE		0xc0000000
 
 #define CONFIG_SYS_INIT_SP_ADDR		0x80010000
+
+#include <asm/arch/hardware.h>
 
 #endif /* __CONFIG_H */

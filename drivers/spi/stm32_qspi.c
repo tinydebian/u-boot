@@ -17,6 +17,7 @@
 #include <errno.h>
 #include <asm/arch/stm32.h>
 #include <asm/arch/stm32_defs.h>
+#include <clk.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -164,6 +165,7 @@ struct stm32_qspi_platdata {
 
 struct stm32_qspi_priv {
 	struct stm32_qspi_regs *regs;
+	ulong clock_rate;
 	u32 max_hz;
 	u32 mode;
 
@@ -457,7 +459,27 @@ static int stm32_qspi_probe(struct udevice *bus)
 
 	priv->max_hz = plat->max_hz;
 
-	clock_setup(QSPI_CLOCK_CFG);
+#ifdef CONFIG_CLK
+	int ret;
+	struct clk clk;
+	ret = clk_get_by_index(bus, 0, &clk);
+	if (ret < 0)
+		return ret;
+
+	ret = clk_enable(&clk);
+
+	if (ret) {
+		dev_err(bus, "failed to enable clock\n");
+		return ret;
+	}
+
+	priv->clock_rate = clk_get_rate(&clk);
+	if (priv->clock_rate < 0) {
+		clk_disable(&clk);
+		return priv->clock_rate;
+	}
+
+#endif
 
 	setbits_le32(&priv->regs->cr, STM32_QSPI_CR_SSHIFT);
 
@@ -522,7 +544,7 @@ static int stm32_qspi_set_speed(struct udevice *bus, uint speed)
 	if (speed > plat->max_hz)
 		speed = plat->max_hz;
 
-	u32 qspi_clk = clock_get(CLOCK_AHB);
+	u32 qspi_clk = priv->clock_rate;
 	u32 prescaler = 255;
 	if (speed > 0) {
 		prescaler = DIV_ROUND_UP(qspi_clk, speed) - 1;

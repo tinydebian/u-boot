@@ -57,7 +57,6 @@
 
 #define CONFIG_PHY_SMSC
 #define CONFIG_LPC32XX_ETH
-#define CONFIG_PHYLIB
 #define CONFIG_PHY_ADDR 0
 #define CONFIG_SYS_FAULT_ECHO_LINK_DOWN
 /* FIXME: remove "Waiting for PHY auto negotiation to complete..." message */
@@ -74,7 +73,6 @@
  * I2C EEPROM
  */
 
-#define CONFIG_CMD_EEPROM
 #define CONFIG_SYS_I2C_EEPROM_ADDR 0x56
 #define CONFIG_SYS_I2C_EEPROM_ADDR_LEN 2
 
@@ -85,21 +83,10 @@
 #define CONFIG_RTC_DS1374
 
 /*
- * I2C Temperature Sensor (DTT)
- */
-
-#define CONFIG_CMD_DTT
-#define CONFIG_DTT_SENSORS { 0, 1 }
-#define CONFIG_DTT_DS620
-
-/*
  * U-Boot General Configurations
  */
 #define CONFIG_SYS_LONGHELP
 #define CONFIG_SYS_CBSIZE		1024
-#define CONFIG_SYS_PBSIZE		\
-	(CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)
-#define CONFIG_SYS_MAXARGS		16
 #define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE
 
 #define CONFIG_AUTO_COMPLETE
@@ -128,8 +115,6 @@
 #define CONFIG_SYS_NAND_BASE MLC_NAND_BASE
 #define CONFIG_NAND_LPC32XX_MLC
 
-#define CONFIG_CMD_NAND
-
 /*
  * GPIO
  */
@@ -142,13 +127,10 @@
 
 #define CONFIG_LPC32XX_SSP
 #define CONFIG_LPC32XX_SSP_TIMEOUT 100000
-#define CONFIG_CMD_MAX6957
-#define CONFIG_CMD_HD44760
 /*
  * Environment
  */
 
-#define CONFIG_ENV_IS_IN_NAND		1
 #define CONFIG_ENV_SIZE			0x00020000
 #define CONFIG_ENV_OFFSET		0x00100000
 #define CONFIG_ENV_OFFSET_REDUND	0x00120000
@@ -162,7 +144,6 @@
 #define CONFIG_INITRD_TAG
 
 #define CONFIG_BOOTFILE			"uImage"
-#define CONFIG_BOOTARGS			"console=ttyS2,115200n8"
 #define CONFIG_LOADADDR			0x80008000
 
 /*
@@ -173,7 +154,6 @@
 #define CONFIG_SPL_TEXT_BASE 0x00000000
 /* SPL will use SRAM as stack */
 #define CONFIG_SPL_STACK     0x0000FFF8
-#define CONFIG_SPL_BOARD_INIT
 /* Use the framework and generic lib */
 #define CONFIG_SPL_FRAMEWORK
 /* SPL will use serial */

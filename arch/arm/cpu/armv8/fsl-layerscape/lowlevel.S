@@ -73,7 +73,10 @@ ENDPROC(smp_kick_all_cpus)
 ENTRY(lowlevel_init)
 	mov	x29, lr			/* Save LR */
 
-#ifdef CONFIG_FSL_LSCH3
+	switch_el x1, 1f, 100f, 100f	/* skip if not in EL3 */
+1:
+
+#if defined (CONFIG_SYS_FSL_HAS_CCN504)
 
 	/* Set Wuo bit for RN-I 20 */
 #ifdef CONFIG_ARCH_LS2080A
@@ -168,7 +171,7 @@ ENTRY(lowlevel_init)
 	ldr	x0, =CCI_S2_QOS_CONTROL_BASE(20)
 	ldr	x1, =0x00FF000C
 	bl	ccn504_set_qos
-#endif
+#endif /* CONFIG_SYS_FSL_HAS_CCN504 */
 
 #ifdef SMMU_BASE
 	/* Set the SMMU page size in the sACR register */
@@ -193,6 +196,7 @@ ENTRY(lowlevel_init)
 #endif
 #endif
 
+100:
 	branch_if_master x0, x1, 2f
 
 #if defined(CONFIG_MP) && defined(CONFIG_ARMV8_MULTIENTRY)
@@ -201,6 +205,8 @@ ENTRY(lowlevel_init)
 #endif
 
 2:
+	switch_el x1, 1f, 100f, 100f	/* skip if not in EL3 */
+1:
 #ifdef CONFIG_FSL_TZPC_BP147
 	/* Set Non Secure access for all devices protected via TZPC */
 	ldr	x1, =TZPCDECPROT_0_SET_BASE /* Decode Protection-0 Set Reg */
@@ -266,8 +272,11 @@ ENTRY(lowlevel_init)
 	isb
 	dsb	sy
 #endif
+100:
 1:
 #ifdef CONFIG_ARCH_LS1046A
+	switch_el x1, 1f, 100f, 100f	/* skip if not in EL3 */
+1:
 	/* Initialize the L2 RAM latency */
 	mrs   x1, S3_1_c11_c0_2
 	mov   x0, #0x1C7
@@ -279,6 +288,7 @@ ENTRY(lowlevel_init)
 	orr   x1,  x1, #0x80
 	msr   S3_1_c11_c0_2, x1
 	isb
+100:
 #endif
 
 #if defined(CONFIG_FSL_LSCH2) && !defined(CONFIG_SPL_BUILD)
@@ -328,7 +338,9 @@ get_svr:
 	ldr	x1, =FSL_LSCH3_SVR
 	ldr	w0, [x1]
 	ret
+#endif
 
+#ifdef CONFIG_SYS_FSL_HAS_CCN504
 hnf_pstate_poll:
 	/* x0 has the desired status, return 0 for success, 1 for timeout
 	 * clobber x1, x2, x3, x4, x6, x7
@@ -379,7 +391,7 @@ ENTRY(__asm_flush_l3_dcache)
 	/*
 	 * Return status in x0
 	 *    success 0
-	 *    tmeout 1 for setting SFONLY, 2 for FAM, 3 for both
+	 *    timeout 1 for setting SFONLY, 2 for FAM, 3 for both
 	 */
 	mov	x29, lr
 	mov	x8, #0
@@ -406,7 +418,7 @@ ENTRY(__asm_flush_l3_dcache)
 	mov	lr, x29
 	ret
 ENDPROC(__asm_flush_l3_dcache)
-#endif
+#endif /* CONFIG_SYS_FSL_HAS_CCN504 */
 
 #ifdef CONFIG_MP
 	/* Keep literals not used by the secondary boot code outside it */
@@ -483,9 +495,7 @@ slave_cpu:
 	rev     x0, x0                  /* BE to LE conversion */
 cpu_is_le:
 	ldr	x5, [x11, #24]
-	ldr	x6, =IH_ARCH_DEFAULT
-	cmp	x6, x5
-	b.eq	1f
+	cbz	x5, 1f
 
 #ifdef CONFIG_ARMV8_SWITCH_TO_EL1
 	adr	x4, secondary_switch_to_el1
@@ -527,9 +537,7 @@ ENTRY(secondary_switch_to_el1)
 	ldr	x4, [x11]
 
 	ldr	x5, [x11, #24]
-	ldr	x6, =IH_ARCH_DEFAULT
-	cmp	x6, x5
-	b.eq	2f
+	cbz	x5, 2f
 
 	ldr	x5, =ES_TO_AARCH32
 	bl	switch_to_el1

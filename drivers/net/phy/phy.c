@@ -488,8 +488,14 @@ int phy_init(void)
 #ifdef CONFIG_PHY_MARVELL
 	phy_marvell_init();
 #endif
-#ifdef CONFIG_PHY_MICREL
-	phy_micrel_init();
+#ifdef CONFIG_PHY_MICREL_KSZ8XXX
+	phy_micrel_ksz8xxx_init();
+#endif
+#ifdef CONFIG_PHY_MICREL_KSZ90X1
+	phy_micrel_ksz90x1_init();
+#endif
+#ifdef CONFIG_PHY_MESON_GXL
+	phy_meson_gxl_init();
 #endif
 #ifdef CONFIG_PHY_NATSEMI
 	phy_natsemi_init();
@@ -860,7 +866,7 @@ struct phy_device *phy_connect(struct mii_dev *bus, int addr,
 #ifdef CONFIG_PHY_FIXED
 	int sn;
 	const char *name;
-	sn = fdt_first_subnode(gd->fdt_blob, dev->of_offset);
+	sn = fdt_first_subnode(gd->fdt_blob, dev_of_offset(dev));
 	while (sn > 0) {
 		name = fdt_get_name(gd->fdt_blob, sn, NULL);
 		if (name != NULL && strcmp(name, "fixed-link") == 0) {

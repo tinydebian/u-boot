@@ -180,6 +180,21 @@ static inline unsigned long read_mpidr(void)
 void __asm_flush_dcache_all(void);
 void __asm_invalidate_dcache_all(void);
 void __asm_flush_dcache_range(u64 start, u64 end);
+
+/**
+ * __asm_invalidate_dcache_range() - Invalidate a range of virtual addresses
+ *
+ * This performance an invalidate from @start to @end - 1. Both addresses
+ * should be cache-aligned, otherwise this function will align the start
+ * address and may continue past the end address.
+ *
+ * Data in the address range is evicted from the cache and is not written back
+ * to memory.
+ *
+ * @start: Start address to invalidate
+ * @end: End address to invalidate up to (exclusive)
+ */
+void __asm_invalidate_dcache_range(u64 start, u64 end);
 void __asm_invalidate_tlb_all(void);
 void __asm_invalidate_icache_all(void);
 int __asm_invalidate_l3_dcache(void);
@@ -200,8 +215,8 @@ void __asm_switch_ttbr(u64 new_ttbr);
  * @entry_point: kernel entry point
  * @es_flag:     execution state flag, ES_TO_AARCH64 or ES_TO_AARCH32
  */
-void armv8_switch_to_el2(u64 args, u64 mach_nr, u64 fdt_addr,
-			 u64 arg4, u64 entry_point, u64 es_flag);
+void __noreturn armv8_switch_to_el2(u64 args, u64 mach_nr, u64 fdt_addr,
+				    u64 arg4, u64 entry_point, u64 es_flag);
 /*
  * Switch from EL2 to EL1 for ARMv8
  *

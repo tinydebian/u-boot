@@ -10,8 +10,7 @@
 
 #define CONFIG_CPU_ARMV8
 #define CONFIG_REMAKE_ELF
-#define CONFIG_NR_DRAM_BANKS		1
-#define CONFIG_ENV_IS_NOWHERE		1
+#define CONFIG_NR_DRAM_BANKS		2
 #define CONFIG_ENV_SIZE			0x2000
 #define CONFIG_SYS_MAXARGS		32
 #define CONFIG_SYS_MALLOC_LEN		(32 << 20)
@@ -26,13 +25,6 @@
 #define GICD_BASE			0xc4301000
 #define GICC_BASE			0xc4302000
 
-#define CONFIG_CMD_ENV
-
-/* Monitor Command Prompt */
-/* Console I/O Buffer Size */
-#define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE + \
-					sizeof(CONFIG_SYS_PROMPT) + 16)
-#define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE
 #define CONFIG_SYS_LONGHELP
 #define CONFIG_CMDLINE_EDITING
 
@@ -42,6 +34,7 @@
 	func(MMC, mmc, 0) \
 	func(MMC, mmc, 1) \
 	func(MMC, mmc, 2) \
+	func(PXE, pxe, na) \
 	func(DHCP, dhcp, na)
 
 #include <config_distro_bootcmd.h>

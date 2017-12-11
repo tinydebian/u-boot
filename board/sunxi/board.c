@@ -32,7 +32,9 @@
 #include <libfdt.h>
 #include <nand.h>
 #include <net.h>
+#include <spl.h>
 #include <sy8106a.h>
+#include <asm/setup.h>
 
 #if defined CONFIG_VIDEO_LCD_PANEL_I2C && !(defined CONFIG_SPL_BUILD)
 /* So that we can use pin names in Kconfig and sunxi_name_to_gpio() */
@@ -76,6 +78,100 @@ static int soft_i2c_board_init(void) { return 0; }
 #endif
 
 DECLARE_GLOBAL_DATA_PTR;
+
+void i2c_init_board(void)
+{
+#ifdef CONFIG_I2C0_ENABLE
+#if defined(CONFIG_MACH_SUN4I) || \
+    defined(CONFIG_MACH_SUN5I) || \
+    defined(CONFIG_MACH_SUN7I) || \
+    defined(CONFIG_MACH_SUN8I_R40)
+	sunxi_gpio_set_cfgpin(SUNXI_GPB(0), SUN4I_GPB_TWI0);
+	sunxi_gpio_set_cfgpin(SUNXI_GPB(1), SUN4I_GPB_TWI0);
+	clock_twi_onoff(0, 1);
+#elif defined(CONFIG_MACH_SUN6I)
+	sunxi_gpio_set_cfgpin(SUNXI_GPH(14), SUN6I_GPH_TWI0);
+	sunxi_gpio_set_cfgpin(SUNXI_GPH(15), SUN6I_GPH_TWI0);
+	clock_twi_onoff(0, 1);
+#elif defined(CONFIG_MACH_SUN8I)
+	sunxi_gpio_set_cfgpin(SUNXI_GPH(2), SUN8I_GPH_TWI0);
+	sunxi_gpio_set_cfgpin(SUNXI_GPH(3), SUN8I_GPH_TWI0);
+	clock_twi_onoff(0, 1);
+#endif
+#endif
+
+#ifdef CONFIG_I2C1_ENABLE
+#if defined(CONFIG_MACH_SUN4I) || \
+    defined(CONFIG_MACH_SUN7I) || \
+    defined(CONFIG_MACH_SUN8I_R40)
+	sunxi_gpio_set_cfgpin(SUNXI_GPB(18), SUN4I_GPB_TWI1);
+	sunxi_gpio_set_cfgpin(SUNXI_GPB(19), SUN4I_GPB_TWI1);
+	clock_twi_onoff(1, 1);
+#elif defined(CONFIG_MACH_SUN5I)
+	sunxi_gpio_set_cfgpin(SUNXI_GPB(15), SUN5I_GPB_TWI1);
+	sunxi_gpio_set_cfgpin(SUNXI_GPB(16), SUN5I_GPB_TWI1);
+	clock_twi_onoff(1, 1);
+#elif defined(CONFIG_MACH_SUN6I)
+	sunxi_gpio_set_cfgpin(SUNXI_GPH(16), SUN6I_GPH_TWI1);
+	sunxi_gpio_set_cfgpin(SUNXI_GPH(17), SUN6I_GPH_TWI1);
+	clock_twi_onoff(1, 1);
+#elif defined(CONFIG_MACH_SUN8I)
+	sunxi_gpio_set_cfgpin(SUNXI_GPH(4), SUN8I_GPH_TWI1);
+	sunxi_gpio_set_cfgpin(SUNXI_GPH(5), SUN8I_GPH_TWI1);
+	clock_twi_onoff(1, 1);
+#endif
+#endif
+
+#ifdef CONFIG_I2C2_ENABLE
+#if defined(CONFIG_MACH_SUN4I) || \
+    defined(CONFIG_MACH_SUN7I) || \
+    defined(CONFIG_MACH_SUN8I_R40)
+	sunxi_gpio_set_cfgpin(SUNXI_GPB(20), SUN4I_GPB_TWI2);
+	sunxi_gpio_set_cfgpin(SUNXI_GPB(21), SUN4I_GPB_TWI2);
+	clock_twi_onoff(2, 1);
+#elif defined(CONFIG_MACH_SUN5I)
+	sunxi_gpio_set_cfgpin(SUNXI_GPB(17), SUN5I_GPB_TWI2);
+	sunxi_gpio_set_cfgpin(SUNXI_GPB(18), SUN5I_GPB_TWI2);
+	clock_twi_onoff(2, 1);
+#elif defined(CONFIG_MACH_SUN6I)
+	sunxi_gpio_set_cfgpin(SUNXI_GPH(18), SUN6I_GPH_TWI2);
+	sunxi_gpio_set_cfgpin(SUNXI_GPH(19), SUN6I_GPH_TWI2);
+	clock_twi_onoff(2, 1);
+#elif defined(CONFIG_MACH_SUN8I)
+	sunxi_gpio_set_cfgpin(SUNXI_GPE(12), SUN8I_GPE_TWI2);
+	sunxi_gpio_set_cfgpin(SUNXI_GPE(13), SUN8I_GPE_TWI2);
+	clock_twi_onoff(2, 1);
+#endif
+#endif
+
+#ifdef CONFIG_I2C3_ENABLE
+#if defined(CONFIG_MACH_SUN6I)
+	sunxi_gpio_set_cfgpin(SUNXI_GPG(10), SUN6I_GPG_TWI3);
+	sunxi_gpio_set_cfgpin(SUNXI_GPG(11), SUN6I_GPG_TWI3);
+	clock_twi_onoff(3, 1);
+#elif defined(CONFIG_MACH_SUN7I) || \
+      defined(CONFIG_MACH_SUN8I_R40)
+	sunxi_gpio_set_cfgpin(SUNXI_GPI(0), SUN7I_GPI_TWI3);
+	sunxi_gpio_set_cfgpin(SUNXI_GPI(1), SUN7I_GPI_TWI3);
+	clock_twi_onoff(3, 1);
+#endif
+#endif
+
+#ifdef CONFIG_I2C4_ENABLE
+#if defined(CONFIG_MACH_SUN7I) || \
+    defined(CONFIG_MACH_SUN8I_R40)
+	sunxi_gpio_set_cfgpin(SUNXI_GPI(2), SUN7I_GPI_TWI4);
+	sunxi_gpio_set_cfgpin(SUNXI_GPI(3), SUN7I_GPI_TWI4);
+	clock_twi_onoff(4, 1);
+#endif
+#endif
+
+#ifdef CONFIG_R_I2C_ENABLE
+	clock_twi_onoff(5, 1);
+	sunxi_gpio_set_cfgpin(SUNXI_GPL(0), SUN8I_H3_GPL_R_TWI);
+	sunxi_gpio_set_cfgpin(SUNXI_GPL(1), SUN8I_H3_GPL_R_TWI);
+#endif
+}
 
 /* add board specific code here */
 int board_init(void)
@@ -121,11 +217,81 @@ int board_init(void)
 	satapwr_pin = sunxi_name_to_gpio(CONFIG_SATAPWR);
 	gpio_request(satapwr_pin, "satapwr");
 	gpio_direction_output(satapwr_pin, 1);
+	/* Give attached sata device time to power-up to avoid link timeouts */
+	mdelay(500);
 #endif
 #ifdef CONFIG_MACPWR
 	macpwr_pin = sunxi_name_to_gpio(CONFIG_MACPWR);
 	gpio_request(macpwr_pin, "macpwr");
 	gpio_direction_output(macpwr_pin, 1);
+#endif
+
+#ifdef CONFIG_DM_I2C
+	/*
+	 * Temporary workaround for enabling I2C clocks until proper sunxi DM
+	 * clk, reset and pinctrl drivers land.
+	 */
+	i2c_init_board();
+#endif
+
+#ifndef CONFIG_SPL_BUILD
+#if defined(CONFIG_MACH_SUN50I_H5_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
+#include <friendlyelec/boardtype.h>
+#include <i2c.h>
+
+#define SY8106A_I2C_ADDR 0x65
+#define SY8106A_VOUT1_SEL 1
+#define SY8106A_VOUT1_SEL_ENABLE (1 << 7)
+#define SY8106A_VOUT1_1200MV	    ((1200-680)/10 | SY8106A_VOUT1_SEL_ENABLE)
+	int npi_boardtype = nanopi_get_board();
+	int i = 0;
+	if (nanopi_board[npi_boardtype][0] == '\0') {
+		printf("fail to get boardtype\n");
+		hang();
+	}
+	for(i=0; i<3; i++) {
+		if (clock_get_pll1() < CONFIG_SYS_CLK_FREQ) {
+			int ret = -1;
+			int power_failed = 0;
+			u8 data = SY8106A_VOUT1_1200MV; 	/* 1.20 V */
+			if (!strcmp(nanopi_board[npi_boardtype], "nanopi-neo-core2") 
+				|| !strcmp(nanopi_board[npi_boardtype], "nanopi-m1-plus2")) {
+				struct udevice *i2c_dev;
+				int busnum = 5;
+				ret = i2c_get_chip_for_busnum(busnum, SY8106A_I2C_ADDR, 1, &i2c_dev);
+				if (ret) {
+					printf("%s: no bus %d\n", __func__, busnum);
+				}
+				ret = dm_i2c_write(i2c_dev, SY8106A_VOUT1_SEL, &data, 1);
+				if (ret) {
+					printf("%s: fail to i2c_write sy8106a", __func__);
+				}
+				udelay(100);
+				data = 0;
+				ret = dm_i2c_read(i2c_dev, SY8106A_VOUT1_SEL, &data, 1);			
+				if (ret) {
+					printf("%s: fail to i2c_read sy8106a", __func__);
+				}
+				printf("Sy8106a: %dmv\n", (data & ~(SY8106A_VOUT1_SEL_ENABLE)) * 10 + 680);
+				if (data != SY8106A_VOUT1_1200MV) 
+					power_failed = 1;
+				else
+					power_failed = 0;
+			}
+			if (!power_failed) {
+				udelay(100);
+				clock_set_pll1(CONFIG_SYS_CLK_FREQ);
+				break;
+			}
+			else {
+				printf("%s: fail to init sy8106a for %s\n", __func__, nanopi_board[npi_boardtype]);
+				if (i == 3)
+					hang();
+			}
+		}
+	}	
+	printf("CPU Freq: %dMHz\n", clock_get_pll1()/1000000);
+#endif
 #endif
 
 	/* Uses dm gpio code so do this here and not in i2c_init_board() */
@@ -182,7 +348,7 @@ void board_nand_init(void)
 }
 #endif
 
-#ifdef CONFIG_GENERIC_MMC
+#ifdef CONFIG_MMC
 static void mmc_pinmux_setup(int sdc)
 {
 	unsigned int pin;
@@ -388,217 +554,26 @@ int board_mmc_init(bd_t *bis)
 		return -1;
 #endif
 
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
 #if !defined(CONFIG_SPL_BUILD) && CONFIG_MMC_SUNXI_SLOT_EXTRA == 2
-	/*
-	 * On systems with an emmc (mmc2), figure out if we are booting from
-	 * the emmc and if we are make it "mmc dev 0" so that boot.scr, etc.
-	 * are searched there first. Note we only do this for u-boot proper,
-	 * not for the SPL, see spl_boot_device().
-	 */
-	if (readb(SPL_ADDR + 0x28) == SUNXI_BOOTED_FROM_MMC2) {
-		/* Booting from emmc / mmc2, swap */
-		mmc0->block_dev.devnum = 1;
-		mmc1->block_dev.devnum = 0;
-	}
+		/*
+		 * On systems with an emmc (mmc2), figure out if we are booting from
+		 * the emmc and if we are make it "mmc dev 0" so that boot.scr, etc.
+		 * are searched there first. Note we only do this for u-boot proper,
+		 * not for the SPL, see spl_boot_device().
+		 */
+		if (readb(SPL_ADDR + 0x28) == SUNXI_BOOTED_FROM_MMC2) {
+			/* Booting from emmc / mmc2, swap */
+			mmc0->block_dev.devnum = 1;
+			mmc1->block_dev.devnum = 0;
+		}
 #endif
-
+#endif
 	return 0;
 }
 #endif
 
-void i2c_init_board(void)
-{
-#ifdef CONFIG_I2C0_ENABLE
-#if defined(CONFIG_MACH_SUN4I) || \
-    defined(CONFIG_MACH_SUN5I) || \
-    defined(CONFIG_MACH_SUN7I) || \
-    defined(CONFIG_MACH_SUN8I_R40)
-	sunxi_gpio_set_cfgpin(SUNXI_GPB(0), SUN4I_GPB_TWI0);
-	sunxi_gpio_set_cfgpin(SUNXI_GPB(1), SUN4I_GPB_TWI0);
-	clock_twi_onoff(0, 1);
-#elif defined(CONFIG_MACH_SUN6I)
-	sunxi_gpio_set_cfgpin(SUNXI_GPH(14), SUN6I_GPH_TWI0);
-	sunxi_gpio_set_cfgpin(SUNXI_GPH(15), SUN6I_GPH_TWI0);
-	clock_twi_onoff(0, 1);
-#elif defined(CONFIG_MACH_SUN8I)
-	sunxi_gpio_set_cfgpin(SUNXI_GPH(2), SUN8I_GPH_TWI0);
-	sunxi_gpio_set_cfgpin(SUNXI_GPH(3), SUN8I_GPH_TWI0);
-	clock_twi_onoff(0, 1);
-#endif
-#endif
-
-#ifdef CONFIG_I2C1_ENABLE
-#if defined(CONFIG_MACH_SUN4I) || \
-    defined(CONFIG_MACH_SUN7I) || \
-    defined(CONFIG_MACH_SUN8I_R40)
-	sunxi_gpio_set_cfgpin(SUNXI_GPB(18), SUN4I_GPB_TWI1);
-	sunxi_gpio_set_cfgpin(SUNXI_GPB(19), SUN4I_GPB_TWI1);
-	clock_twi_onoff(1, 1);
-#elif defined(CONFIG_MACH_SUN5I)
-	sunxi_gpio_set_cfgpin(SUNXI_GPB(15), SUN5I_GPB_TWI1);
-	sunxi_gpio_set_cfgpin(SUNXI_GPB(16), SUN5I_GPB_TWI1);
-	clock_twi_onoff(1, 1);
-#elif defined(CONFIG_MACH_SUN6I)
-	sunxi_gpio_set_cfgpin(SUNXI_GPH(16), SUN6I_GPH_TWI1);
-	sunxi_gpio_set_cfgpin(SUNXI_GPH(17), SUN6I_GPH_TWI1);
-	clock_twi_onoff(1, 1);
-#elif defined(CONFIG_MACH_SUN8I)
-	sunxi_gpio_set_cfgpin(SUNXI_GPH(4), SUN8I_GPH_TWI1);
-	sunxi_gpio_set_cfgpin(SUNXI_GPH(5), SUN8I_GPH_TWI1);
-	clock_twi_onoff(1, 1);
-#endif
-#endif
-
-#ifdef CONFIG_I2C2_ENABLE
-#if defined(CONFIG_MACH_SUN4I) || \
-    defined(CONFIG_MACH_SUN7I) || \
-    defined(CONFIG_MACH_SUN8I_R40)
-	sunxi_gpio_set_cfgpin(SUNXI_GPB(20), SUN4I_GPB_TWI2);
-	sunxi_gpio_set_cfgpin(SUNXI_GPB(21), SUN4I_GPB_TWI2);
-	clock_twi_onoff(2, 1);
-#elif defined(CONFIG_MACH_SUN5I)
-	sunxi_gpio_set_cfgpin(SUNXI_GPB(17), SUN5I_GPB_TWI2);
-	sunxi_gpio_set_cfgpin(SUNXI_GPB(18), SUN5I_GPB_TWI2);
-	clock_twi_onoff(2, 1);
-#elif defined(CONFIG_MACH_SUN6I)
-	sunxi_gpio_set_cfgpin(SUNXI_GPH(18), SUN6I_GPH_TWI2);
-	sunxi_gpio_set_cfgpin(SUNXI_GPH(19), SUN6I_GPH_TWI2);
-	clock_twi_onoff(2, 1);
-#elif defined(CONFIG_MACH_SUN8I)
-	sunxi_gpio_set_cfgpin(SUNXI_GPE(12), SUN8I_GPE_TWI2);
-	sunxi_gpio_set_cfgpin(SUNXI_GPE(13), SUN8I_GPE_TWI2);
-	clock_twi_onoff(2, 1);
-#endif
-#endif
-
-#ifdef CONFIG_I2C3_ENABLE
-#if defined(CONFIG_MACH_SUN6I)
-	sunxi_gpio_set_cfgpin(SUNXI_GPG(10), SUN6I_GPG_TWI3);
-	sunxi_gpio_set_cfgpin(SUNXI_GPG(11), SUN6I_GPG_TWI3);
-	clock_twi_onoff(3, 1);
-#elif defined(CONFIG_MACH_SUN7I) || \
-      defined(CONFIG_MACH_SUN8I_R40)
-	sunxi_gpio_set_cfgpin(SUNXI_GPI(0), SUN7I_GPI_TWI3);
-	sunxi_gpio_set_cfgpin(SUNXI_GPI(1), SUN7I_GPI_TWI3);
-	clock_twi_onoff(3, 1);
-#endif
-#endif
-
-#ifdef CONFIG_I2C4_ENABLE
-#if defined(CONFIG_MACH_SUN7I) || \
-    defined(CONFIG_MACH_SUN8I_R40)
-	sunxi_gpio_set_cfgpin(SUNXI_GPI(2), SUN7I_GPI_TWI4);
-	sunxi_gpio_set_cfgpin(SUNXI_GPI(3), SUN7I_GPI_TWI4);
-	clock_twi_onoff(4, 1);
-#endif
-#endif
-
-#ifdef CONFIG_R_I2C_ENABLE
-	clock_twi_onoff(5, 1);
-	sunxi_gpio_set_cfgpin(SUNXI_GPL(0), SUN8I_H3_GPL_R_TWI);
-	sunxi_gpio_set_cfgpin(SUNXI_GPL(1), SUN8I_H3_GPL_R_TWI);
-#endif
-}
-
 #ifdef CONFIG_SPL_BUILD
-#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
-int nanopi_spl_read_gpio(void)
-{
-	int ret = -1, gpio = 0;
-	char pin_label[16];
-	char pin[2][8] = {
-		"PC4",
-		"PC7",
-	};	
-	int i, pin_num, id_pin, pin_value;
-	
-	pin_num = sizeof(pin) / sizeof(pin[0]);
-	for (i=0; i<pin_num; i++) {
-		memset(pin_label, 0, sizeof(pin_label));
-		sprintf(pin_label, "boardid_%d", i);
-		id_pin = sunxi_name_to_gpio(pin[i]);
-		ret = gpio_request(id_pin, pin_label);
-		if (!ret) {
-			gpio_direction_input(id_pin);
-			pin_value = gpio_get_value(id_pin);
-			gpio |= pin_value<<i;
-			gpio_free(id_pin);
-		} else {
-			printf("fail to request gpio %d\n", id_pin);
-			hang(); 
-		}
-	}
-	return gpio;
-}
-
-int nanopi_spl_read_extra_gpio(void)
-{
-	int ret = -1, gpio = 0;
-	char pin_label[16];
-	char pin[1][8] = {
-		"PC6",
-	};	
-	int i, pin_num, id_pin, pin_value, old_func;
-	
-	pin_num = sizeof(pin) / sizeof(pin[0]);
-	for (i=0; i<pin_num; i++) {
-		memset(pin_label, 0, sizeof(pin_label));
-		sprintf(pin_label, "boardid_%d", i);
-		id_pin = sunxi_name_to_gpio(pin[i]);
-		ret = gpio_request(id_pin, pin_label);
-		if (!ret) {
-			old_func = sunxi_gpio_get_cfgpin(id_pin);	// store func
-			gpio_direction_input(id_pin);
-			sunxi_gpio_set_pull(id_pin, SUNXI_GPIO_PULL_DOWN);
-			mdelay(2);
-			pin_value = gpio_get_value(id_pin);
-			gpio |= pin_value<<i;
-			sunxi_gpio_set_cfgpin(id_pin, old_func);    // resotre func
-			gpio_free(id_pin);
-		} else {
-			printf("fail to request gpio %d\n", id_pin);
-			hang(); 
-		}
-	}
-	return gpio;
-}
-
-int nanopi_spl_get_board(void)
-{
-	int ret = -1, boardtype = -1, cputype = -1;
-	unsigned int sid[4];
-	int extra_gpio;
-	
-	ret = sunxi_get_sid(sid);
-	if (ret == 0 && sid[0] != 0) {
-		cputype = sid[0] & 0xff;
-	}
-	switch (cputype) {
-	case CPU_TYPE_H2_1:
-	case CPU_TYPE_H2_2:
-		boardtype = BOARD_TYPE_NANOPI_DUO;						
-		break;
-	default:		// H3 & H5
-		boardtype = nanopi_spl_read_gpio();
-		extra_gpio = nanopi_spl_read_extra_gpio();   // unreliable gpio except nanopi-neo-core. Don't count on this gpio.
-		switch (boardtype) {
-		case BOARD_TYPE_NANOPI_NEO:
-			if (extra_gpio == 1)
-				boardtype = BOARD_TYPE_NANOPI_NEO_CORE;
-			break;
-		}
-		break;
-	}
-	if (boardtype>=0 && boardtype<BOARD_TYPE_MAX) {
-		return boardtype;
-	} else {
-		printf("SPL: UNKNOWN BOARDTYPE\n");
-		hang();
-	}
-	return boardtype;
-}
-#endif
-
 void sunxi_board_init(void)
 {
 	int power_failed = 0;
@@ -661,32 +636,9 @@ void sunxi_board_init(void)
 	power_failed |= axp_set_sw(IS_ENABLED(CONFIG_AXP_SW_ON));
 #endif
 #endif
-#if defined(CONFIG_MACH_SUN8I_H3_NANOPI)
-	char board[BOARD_TYPE_MAX][32] = {
-		"Nanopi M1",
-		"Nanopi NEO",
-		"Nanopi NEO Air",
-		"Nanopi M1 Plus",
-		"Nanopi Duo",
-		"Nanopi NEO Core",
-	};
-#elif defined(CONFIG_MACH_SUN8I_H5_NANOPI)
-	char board[BOARD_TYPE_MAX][32] = {
-		"Nanopi NEO Core2",
-		"Nanopi NEO2",
-		"Nanopi NEO Plus2",
-		"Nanopi M1 Plus2",
-	};
-#endif
-#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
-	int boardtype = -1;
-	if ((boardtype = nanopi_spl_get_board()) >= 0) {
-		printf("BOARD: %s id=%d\n", board[boardtype], boardtype);
-	}
-#endif
 	printf("DRAM:");
 	gd->ram_size = sunxi_dram_init();
-	printf(" %d MiB\n", (int)(gd->ram_size >> 20));
+	printf(" %d MiB(%dMHz)\n", (int)(gd->ram_size >> 20), CONFIG_DRAM_CLK);
 	if (!gd->ram_size)
 		hang();
 
@@ -695,7 +647,11 @@ void sunxi_board_init(void)
 	 * assured it's being powered with suitable core voltage
 	 */
 	if (!power_failed)
+#if defined(CONFIG_MACH_SUN50I_H5_NANOPI) || defined(CONFIG_MACH_SUN8I_H3_NANOPI)
+		printf("CPU Freq: %dMHz\n", clock_get_pll1()/1000000);
+#else
 		clock_set_pll1(CONFIG_SYS_CLK_FREQ);
+#endif
 	else
 		printf("Failed to set core voltage! Can't set CPU frequency\n");
 }
@@ -714,7 +670,7 @@ void get_board_serial(struct tag_serialnr *serialnr)
 	char *serial_string;
 	unsigned long long serial;
 
-	serial_string = getenv("serial#");
+	serial_string = env_get("serial#");
 
 	if (serial_string) {
 		serial = simple_strtoull(serial_string, NULL, 16);
@@ -758,7 +714,7 @@ static void parse_spl_header(const uint32_t spl_addr)
 		return;
 	}
 	/* otherwise assume .scr format (mkimage-type script) */
-	setenv_hex("fel_scriptaddr", spl->fel_script_address);
+	env_set_hex("fel_scriptaddr", spl->fel_script_address);
 }
 
 /*
@@ -806,7 +762,7 @@ static void setup_environment(const void *fdt)
 			else
 				sprintf(ethaddr, "eth%daddr", i);
 
-			if (getenv(ethaddr))
+			if (env_get(ethaddr))
 				continue;
 
 			/* Non OUI / registered MAC address */
@@ -817,22 +773,27 @@ static void setup_environment(const void *fdt)
 			mac_addr[4] = (sid[3] >>  8) & 0xff;
 			mac_addr[5] = (sid[3] >>  0) & 0xff;
 
-			eth_setenv_enetaddr(ethaddr, mac_addr);
-#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
+			eth_env_set_enetaddr(ethaddr, mac_addr);
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
 			char mac_node[32];
 			sprintf(mac_node, "[%x %x %x %x %x %x]", \
 								mac_addr[0], mac_addr[1], \
 								mac_addr[2], mac_addr[3], \
 								mac_addr[4], mac_addr[5]);
-			setenv("mac_node", mac_node);
+			env_set("mac_node", mac_node);
+			sprintf(mac_node, "[%x %x %x %x %x %x]", \
+					mac_addr[0], mac_addr[5], \
+					mac_addr[4], mac_addr[3], \
+					mac_addr[2], mac_addr[1]);
+			env_set("wifi_mac_node", mac_node);
 #endif
 		}
 
-		if (!getenv("serial#")) {
+		if (!env_get("serial#")) {
 			snprintf(serial_string, sizeof(serial_string),
 				"%08x%08x", sid[0], sid[3]);
 
-			setenv("serial#", serial_string);
+			env_set("serial#", serial_string);
 		}
 	}
 }
@@ -840,13 +801,22 @@ static void setup_environment(const void *fdt)
 int misc_init_r(void)
 {
 	__maybe_unused int ret;
+	uint boot;
 
-	setenv("fel_booted", NULL);
-	setenv("fel_scriptaddr", NULL);
+	env_set("fel_booted", NULL);
+	env_set("fel_scriptaddr", NULL);
+	env_set("mmc_bootdev", NULL);
+
+	boot = sunxi_get_boot_device();
 	/* determine if we are running in FEL mode */
-	if (!is_boot0_magic(SPL_ADDR + 4)) { /* eGON.BT0 */
-		setenv("fel_booted", "1");
+	if (boot == BOOT_DEVICE_BOARD) {
+		env_set("fel_booted", "1");
 		parse_spl_header(SPL_ADDR);
+	/* or if we booted from MMC, and which one */
+	} else if (boot == BOOT_DEVICE_MMC1) {
+		env_set("mmc_bootdev", "0");
+	} else if (boot == BOOT_DEVICE_MMC2) {
+		env_set("mmc_bootdev", "1");
 	}
 
 	setup_environment(gd->fdt_blob);
@@ -856,7 +826,10 @@ int misc_init_r(void)
 	if (ret)
 		return ret;
 #endif
-	sunxi_musb_board_init();
+
+#ifdef CONFIG_USB_ETHER
+	usb_ether_init();
+#endif
 
 	return 0;
 }

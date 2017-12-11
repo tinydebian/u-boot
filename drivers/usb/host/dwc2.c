@@ -43,6 +43,11 @@ struct dwc2_priv {
 	struct dwc2_core_regs *regs;
 	int root_hub_devnum;
 	bool ext_vbus;
+	/*
+	 * The hnp/srp capability must be disabled if the platform
+	 * does't support hnp/srp. Otherwise the force mode can't work.
+	 */
+	bool hnp_srp_disable;
 	bool oc_disable;
 };
 
@@ -174,7 +179,7 @@ static int dwc_vbus_supply_init(struct udevice *dev)
 
 	ret = regulator_set_enable(vbus_supply, true);
 	if (ret) {
-		error("Error enabling vbus supply\n");
+		pr_err("Error enabling vbus supply\n");
 		return ret;
 	}
 
@@ -394,6 +399,9 @@ static void dwc_otg_core_init(struct dwc2_priv *priv)
 		usbcfg |= DWC2_GUSBCFG_ULPI_CLK_SUS_M;
 	}
 #endif
+	if (priv->hnp_srp_disable)
+		usbcfg |= DWC2_GUSBCFG_FORCEHOSTMODE;
+
 	writel(usbcfg, &regs->gusbcfg);
 
 	/* Program the GAHBCFG Register. */
@@ -422,12 +430,16 @@ static void dwc_otg_core_init(struct dwc2_priv *priv)
 
 	writel(ahbcfg, &regs->gahbcfg);
 
-	/* Program the GUSBCFG register for HNP/SRP. */
-	setbits_le32(&regs->gusbcfg, DWC2_GUSBCFG_HNPCAP | DWC2_GUSBCFG_SRPCAP);
+	/* Program the capabilities in GUSBCFG Register */
+	usbcfg = 0;
 
+	if (!priv->hnp_srp_disable)
+		usbcfg |= DWC2_GUSBCFG_HNPCAP | DWC2_GUSBCFG_SRPCAP;
 #ifdef CONFIG_DWC2_IC_USB_CAP
-	setbits_le32(&regs->gusbcfg, DWC2_GUSBCFG_IC_USB_CAP);
+	usbcfg |= DWC2_GUSBCFG_IC_USB_CAP;
 #endif
+
+	setbits_le32(&regs->gusbcfg, usbcfg);
 }
 
 /*
@@ -1231,18 +1243,15 @@ static int dwc2_submit_int_msg(struct udevice *dev, struct usb_device *udev,
 static int dwc2_usb_ofdata_to_platdata(struct udevice *dev)
 {
 	struct dwc2_priv *priv = dev_get_priv(dev);
-	const void *prop;
 	fdt_addr_t addr;
 
-	addr = dev_get_addr(dev);
+	addr = dev_read_addr(dev);
 	if (addr == FDT_ADDR_T_NONE)
 		return -EINVAL;
 	priv->regs = (struct dwc2_core_regs *)addr;
 
-	prop = fdt_getprop(gd->fdt_blob, dev_of_offset(dev),
-			   "disable-over-current", NULL);
-	if (prop)
-		priv->oc_disable = true;
+	priv->oc_disable = dev_read_bool(dev, "disable-over-current");
+	priv->hnp_srp_disable = dev_read_bool(dev, "hnp-srp-disable");
 
 	return 0;
 }

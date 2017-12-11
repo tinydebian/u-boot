@@ -91,17 +91,7 @@
 #define CONFIG_SYS_NAND_ENABLE_PIN	AT91_PIN_PC14
 #define CONFIG_SYS_NAND_READY_PIN	AT91_PIN_PC13
 
-#define CONFIG_CMD_MTDPARTS
 #define CONFIG_MTD_DEVICE
-#define MTDIDS_NAME_STR		"atmel_nand"
-#define MTDIDS_DEFAULT		"nand0=" MTDIDS_NAME_STR
-#define MTDPARTS_DEFAULT	"mtdparts=" MTDIDS_NAME_STR ":" \
-					"128k(Bootstrap),"		\
-					"896k(U-Boot),"	\
-					"512k(ENV0),"	\
-					"512k(ENV1),"	\
-					"4M(Linux),"	\
-					"-(Root-FS)"
 
 /* general purpose I/O */
 #define CONFIG_ATMEL_LEGACY		/* required until (g)pio is fixed */
@@ -118,10 +108,6 @@
  *
  */
 #define CONFIG_MACB
-#define CONFIG_PHYLIB
-#define CONFIG_USB_HOST_ETHER
-#define CONFIG_USB_ETHER_ASIX
-#define CONFIG_USB_ETHER_MCS7830
 #define CONFIG_RMII			/* use reduced MII inteface */
 #define CONFIG_NET_RETRY_COUNT	20      /* # of DHCP/BOOTP retries */
 #define CONFIG_AT91_WANTS_COMMON_PHY
@@ -155,7 +141,6 @@
 #define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	2
 
 /* USB DFU support */
-#define CONFIG_CMD_MTDPARTS
 #define CONFIG_MTD_DEVICE
 #define CONFIG_MTD_PARTITIONS
 
@@ -169,8 +154,6 @@
 /* General Boot Parameter */
 #define CONFIG_BOOTCOMMAND		"run flashboot"
 #define CONFIG_SYS_CBSIZE		512
-#define CONFIG_SYS_PBSIZE \
-	(CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)
 #define CONFIG_SYS_LONGHELP
 #define CONFIG_CMDLINE_EDITING
 
@@ -183,7 +166,6 @@
 /*
  * The NAND Flash partitions:
  */
-#define CONFIG_ENV_IS_IN_NAND
 #define CONFIG_ENV_OFFSET		(0x100000)
 #define CONFIG_ENV_OFFSET_REDUND	(0x180000)
 #define CONFIG_ENV_RANGE		(SZ_512K)
@@ -197,15 +179,7 @@
 									\
 	"basicargs=console=ttyS0,115200\0"				\
 									\
-	"mtdparts="MTDPARTS_DEFAULT"\0"
-
-/* Command line & features configuration */
-
-#define CONFIG_CMD_NAND
-
-#ifdef CONFIG_MACB
-#else
-#endif /* CONFIG_MACB */
+	"mtdparts="CONFIG_MTDPARTS_DEFAULT"\0"
 
 #ifdef CONFIG_SPL_BUILD
 #define CONFIG_SYS_INIT_SP_ADDR		0x301000
@@ -231,9 +205,7 @@
 #define CONFIG_SYS_SPL_MALLOC_START     (CONFIG_SPL_BSS_START_ADDR + \
 					CONFIG_SPL_BSS_MAX_SIZE)
 #define CONFIG_SYS_SPL_MALLOC_SIZE      CONFIG_SYS_MALLOC_LEN
-#define CONFIG_SPL_LDSCRIPT	arch/arm/mach-at91/arm926ejs/u-boot-spl.lds
 
-#define CONFIG_SPL_BOARD_INIT
 #define CONFIG_SYS_NAND_ENABLE_PIN_SPL	(2*32 + 14)
 #define CONFIG_SYS_USE_NANDFLASH	1
 #define CONFIG_SPL_NAND_DRIVERS

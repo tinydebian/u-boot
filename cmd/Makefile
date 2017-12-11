@@ -15,6 +15,7 @@ obj-y += version.o
 # command
 obj-$(CONFIG_CMD_AES) += aes.o
 obj-$(CONFIG_CMD_ARMFLASH) += armflash.o
+obj-y += blk_common.o
 obj-$(CONFIG_SOURCE) += source.o
 obj-$(CONFIG_CMD_SOURCE) += source.o
 obj-$(CONFIG_CMD_BDI) += bdinfo.o
@@ -26,6 +27,7 @@ obj-$(CONFIG_CMD_BOOTMENU) += bootmenu.o
 obj-$(CONFIG_CMD_BOOTSTAGE) += bootstage.o
 obj-$(CONFIG_CMD_BOOTZ) += bootz.o
 obj-$(CONFIG_CMD_BOOTI) += booti.o
+obj-$(CONFIG_CMD_BTRFS) += btrfs.o
 obj-$(CONFIG_CMD_CACHE) += cache.o
 obj-$(CONFIG_CMD_CBFS) += cbfs.o
 obj-$(CONFIG_CMD_CLK) += clk.o
@@ -36,14 +38,10 @@ obj-$(CONFIG_DATAFLASH_MMC_SELECT) += dataflash_mmc_mux.o
 obj-$(CONFIG_CMD_DATE) += date.o
 obj-$(CONFIG_CMD_DEMO) += demo.o
 obj-$(CONFIG_CMD_SOUND) += sound.o
-ifdef CONFIG_4xx
-obj-$(CONFIG_CMD_SETGETDCR) += dcr.o
-endif
 ifdef CONFIG_POST
 obj-$(CONFIG_CMD_DIAG) += diag.o
 endif
 obj-$(CONFIG_CMD_DISPLAY) += display.o
-obj-$(CONFIG_CMD_DTT) += dtt.o
 obj-$(CONFIG_CMD_ECHO) += echo.o
 obj-$(CONFIG_ENV_IS_IN_EEPROM) += eeprom.o
 obj-$(CONFIG_CMD_EEPROM) += eeprom.o
@@ -69,7 +67,6 @@ obj-$(CONFIG_CMD_I2C) += i2c.o
 obj-$(CONFIG_CMD_IOTRACE) += iotrace.o
 obj-$(CONFIG_CMD_HASH) += hash.o
 obj-$(CONFIG_CMD_IDE) += ide.o disk.o
-obj-$(CONFIG_CMD_IMMAP) += immap.o
 obj-$(CONFIG_CMD_INI) += ini.o
 obj-$(CONFIG_CMD_IRQ) += irq.o
 obj-$(CONFIG_CMD_ITEST) += itest.o
@@ -102,7 +99,6 @@ ifdef CONFIG_PCI
 obj-$(CONFIG_CMD_PCI) += pci.o
 endif
 obj-y += pcmcia.o
-obj-$(CONFIG_CMD_PORTIO) += portio.o
 obj-$(CONFIG_CMD_PXE) += pxe.o
 obj-$(CONFIG_CMD_QFW) += qfw.o
 obj-$(CONFIG_CMD_READ) += read.o
@@ -111,8 +107,9 @@ obj-$(CONFIG_CMD_REISER) += reiser.o
 obj-$(CONFIG_CMD_REMOTEPROC) += remoteproc.o
 obj-$(CONFIG_SANDBOX) += host.o
 obj-$(CONFIG_CMD_SATA) += sata.o
+obj-$(CONFIG_CMD_NVME) += nvme.o
 obj-$(CONFIG_CMD_SF) += sf.o
-obj-$(CONFIG_SCSI) += scsi.o disk.o
+obj-$(CONFIG_CMD_SCSI) += scsi.o disk.o
 obj-$(CONFIG_CMD_SHA1SUM) += sha1sum.o
 obj-$(CONFIG_CMD_SETEXPR) += setexpr.o
 obj-$(CONFIG_CMD_SPI) += spi.o
@@ -129,18 +126,17 @@ obj-$(CONFIG_CMD_UBI) += ubi.o
 obj-$(CONFIG_CMD_UBIFS) += ubifs.o
 obj-$(CONFIG_CMD_UNIVERSE) += universe.o
 obj-$(CONFIG_CMD_UNZIP) += unzip.o
-ifdef CONFIG_LZMA
 obj-$(CONFIG_CMD_LZMADEC) += lzmadec.o
-endif
 
 obj-$(CONFIG_CMD_USB) += usb.o disk.o
 obj-$(CONFIG_CMD_FASTBOOT) += fastboot.o
 obj-$(CONFIG_CMD_FS_UUID) += fs_uuid.o
 
 obj-$(CONFIG_CMD_USB_MASS_STORAGE) += usb_mass_storage.o
+obj-$(CONFIG_CMD_USB_SDP) += usb_gadget_sdp.o
 obj-$(CONFIG_CMD_THOR_DOWNLOAD) += thordown.o
 obj-$(CONFIG_CMD_XIMG) += ximg.o
-obj-$(CONFIG_YAFFS2) += yaffs2.o
+obj-$(CONFIG_CMD_YAFFS2) += yaffs2.o
 obj-$(CONFIG_CMD_SPL) += spl.o
 obj-$(CONFIG_CMD_ZIP) += zip.o
 obj-$(CONFIG_CMD_ZFS) += zfs.o
@@ -196,3 +192,5 @@ $(obj)/license_data_gz.h: $(obj)/license_data.gz FORCE
 targets += license_data_size.h
 $(obj)/license_data_size.h: $(srctree)/Licenses/gpl-2.0.txt FORCE
 	$(call filechk,data_size)
+
+CFLAGS_ethsw.o := -Wno-enum-conversion

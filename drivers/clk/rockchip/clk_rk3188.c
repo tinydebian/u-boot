@@ -71,9 +71,6 @@ enum {
 	SOCSTS_GPLL_LOCK	= 1 << 8,
 };
 
-#define RATE_TO_DIV(input_rate, output_rate) \
-	((input_rate) / (output_rate) - 1);
-
 #define DIV_TO_RATE(input_rate, div)	((input_rate) / ((div) + 1))
 
 #define PLL_DIVISORS(hz, _nr, _no) {\
@@ -269,14 +266,17 @@ static ulong rockchip_mmc_get_clk(struct rk3188_cru *cru, uint gclk_rate,
 
 	switch (periph) {
 	case HCLK_EMMC:
+	case SCLK_EMMC:
 		con = readl(&cru->cru_clksel_con[12]);
 		div = (con >> EMMC_DIV_SHIFT) & EMMC_DIV_MASK;
 		break;
 	case HCLK_SDMMC:
+	case SCLK_SDMMC:
 		con = readl(&cru->cru_clksel_con[11]);
 		div = (con >> MMC0_DIV_SHIFT) & MMC0_DIV_MASK;
 		break;
 	case HCLK_SDIO:
+	case SCLK_SDIO:
 		con = readl(&cru->cru_clksel_con[12]);
 		div = (con >> SDIO_DIV_SHIFT) & SDIO_DIV_MASK;
 		break;
@@ -284,7 +284,7 @@ static ulong rockchip_mmc_get_clk(struct rk3188_cru *cru, uint gclk_rate,
 		return -EINVAL;
 	}
 
-	return DIV_TO_RATE(gclk_rate, div);
+	return DIV_TO_RATE(gclk_rate, div) / 2;
 }
 
 static ulong rockchip_mmc_set_clk(struct rk3188_cru *cru, uint gclk_rate,
@@ -293,21 +293,25 @@ static ulong rockchip_mmc_set_clk(struct rk3188_cru *cru, uint gclk_rate,
 	int src_clk_div;
 
 	debug("%s: gclk_rate=%u\n", __func__, gclk_rate);
-	src_clk_div = RATE_TO_DIV(gclk_rate, freq);
+	/* mmc clock defaulg div 2 internal, need provide double in cru */
+	src_clk_div = DIV_ROUND_UP(gclk_rate / 2, freq) - 1;
 	assert(src_clk_div <= 0x3f);
 
 	switch (periph) {
 	case HCLK_EMMC:
+	case SCLK_EMMC:
 		rk_clrsetreg(&cru->cru_clksel_con[12],
 			     EMMC_DIV_MASK << EMMC_DIV_SHIFT,
 			     src_clk_div << EMMC_DIV_SHIFT);
 		break;
 	case HCLK_SDMMC:
+	case SCLK_SDMMC:
 		rk_clrsetreg(&cru->cru_clksel_con[11],
 			     MMC0_DIV_MASK << MMC0_DIV_SHIFT,
 			     src_clk_div << MMC0_DIV_SHIFT);
 		break;
 	case HCLK_SDIO:
+	case SCLK_SDIO:
 		rk_clrsetreg(&cru->cru_clksel_con[12],
 			     SDIO_DIV_MASK << SDIO_DIV_SHIFT,
 			     src_clk_div << SDIO_DIV_SHIFT);
@@ -344,8 +348,9 @@ static ulong rockchip_spi_get_clk(struct rk3188_cru *cru, uint gclk_rate,
 static ulong rockchip_spi_set_clk(struct rk3188_cru *cru, uint gclk_rate,
 				  int periph, uint freq)
 {
-	int src_clk_div = RATE_TO_DIV(gclk_rate, freq);
+	int src_clk_div = DIV_ROUND_UP(gclk_rate, freq) - 1;
 
+	assert(src_clk_div < 128);
 	switch (periph) {
 	case SCLK_SPI0:
 		assert(src_clk_div <= SPI0_DIV_MASK);
@@ -394,8 +399,8 @@ static void rkclk_init(struct rk3188_cru *cru, struct rk3188_grf *grf,
 	 * reparent aclk_cpu_pre from apll to gpll
 	 * set up dependent divisors for PCLK/HCLK and ACLK clocks.
 	 */
-	aclk_div = RATE_TO_DIV(GPLL_HZ, CPU_ACLK_HZ);
-	assert((aclk_div + 1) * CPU_ACLK_HZ == GPLL_HZ && aclk_div < 0x1f);
+	aclk_div = DIV_ROUND_UP(GPLL_HZ, CPU_ACLK_HZ) - 1;
+	assert((aclk_div + 1) * CPU_ACLK_HZ == GPLL_HZ && aclk_div <= 0x1f);
 
 	rk_clrsetreg(&cru->cru_clksel_con[0],
 		     CPU_ACLK_PLL_MASK << CPU_ACLK_PLL_SHIFT |
@@ -466,6 +471,9 @@ static ulong rk3188_clk_get_rate(struct clk *clk)
 	case HCLK_EMMC:
 	case HCLK_SDMMC:
 	case HCLK_SDIO:
+	case SCLK_EMMC:
+	case SCLK_SDMMC:
+	case SCLK_SDIO:
 		new_rate = rockchip_mmc_get_clk(priv->cru, PERI_HCLK_HZ,
 						clk->id);
 		break;
@@ -505,6 +513,9 @@ static ulong rk3188_clk_set_rate(struct clk *clk, ulong rate)
 	case HCLK_EMMC:
 	case HCLK_SDMMC:
 	case HCLK_SDIO:
+	case SCLK_EMMC:
+	case SCLK_SDMMC:
+	case SCLK_SDIO:
 		new_rate = rockchip_mmc_set_clk(cru, PERI_HCLK_HZ,
 						clk->id, rate);
 		break;
@@ -530,7 +541,7 @@ static int rk3188_clk_ofdata_to_platdata(struct udevice *dev)
 #if !CONFIG_IS_ENABLED(OF_PLATDATA)
 	struct rk3188_clk_priv *priv = dev_get_priv(dev);
 
-	priv->cru = (struct rk3188_cru *)dev_get_addr(dev);
+	priv->cru = (struct rk3188_cru *)devfdt_get_addr(dev);
 #endif
 
 	return 0;

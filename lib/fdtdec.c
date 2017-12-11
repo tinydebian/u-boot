@@ -5,14 +5,17 @@
 
 #ifndef USE_HOSTCC
 #include <common.h>
+#include <boot_fit.h>
 #include <dm.h>
+#include <dm/of_extra.h>
 #include <errno.h>
-#include <serial.h>
-#include <libfdt.h>
-#include <fdt_support.h>
 #include <fdtdec.h>
+#include <fdt_support.h>
+#include <libfdt.h>
+#include <serial.h>
 #include <asm/sections.h>
 #include <linux/ctype.h>
+#include <linux/lzo.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -32,12 +35,6 @@ static const char * const compat_names[COMPAT_COUNT] = {
 	COMPAT(NVIDIA_TEGRA20_EMC, "nvidia,tegra20-emc"),
 	COMPAT(NVIDIA_TEGRA20_EMC_TABLE, "nvidia,tegra20-emc-table"),
 	COMPAT(NVIDIA_TEGRA20_NAND, "nvidia,tegra20-nand"),
-	COMPAT(NVIDIA_TEGRA124_PMC, "nvidia,tegra124-pmc"),
-	COMPAT(NVIDIA_TEGRA186_SDMMC, "nvidia,tegra186-sdhci"),
-	COMPAT(NVIDIA_TEGRA210_SDMMC, "nvidia,tegra210-sdhci"),
-	COMPAT(NVIDIA_TEGRA124_SDMMC, "nvidia,tegra124-sdhci"),
-	COMPAT(NVIDIA_TEGRA30_SDMMC, "nvidia,tegra30-sdhci"),
-	COMPAT(NVIDIA_TEGRA20_SDMMC, "nvidia,tegra20-sdhci"),
 	COMPAT(NVIDIA_TEGRA124_XUSB_PADCTL, "nvidia,tegra124-xusb-padctl"),
 	COMPAT(NVIDIA_TEGRA210_XUSB_PADCTL, "nvidia,tegra210-xusb-padctl"),
 	COMPAT(SMSC_LAN9215, "smsc,lan9215"),
@@ -940,38 +937,6 @@ int fdtdec_decode_region(const void *blob, int node, const char *prop_name,
 	return 0;
 }
 
-/**
- * Read a flash entry from the fdt
- *
- * @param blob		FDT blob
- * @param node		Offset of node to read
- * @param name		Name of node being read
- * @param entry		Place to put offset and size of this node
- * @return 0 if ok, -ve on error
- */
-int fdtdec_read_fmap_entry(const void *blob, int node, const char *name,
-			   struct fmap_entry *entry)
-{
-	const char *prop;
-	u32 reg[2];
-
-	if (fdtdec_get_int_array(blob, node, "reg", reg, 2)) {
-		debug("Node '%s' has bad/missing 'reg' property\n", name);
-		return -FDT_ERR_NOTFOUND;
-	}
-	entry->offset = reg[0];
-	entry->length = reg[1];
-	entry->used = fdtdec_get_int(blob, node, "used", entry->length);
-	prop = fdt_getprop(blob, node, "compress", NULL);
-	entry->compress_algo = prop && !strcmp(prop, "lzo") ?
-		FMAP_COMPRESS_LZO : FMAP_COMPRESS_NONE;
-	prop = fdt_getprop(blob, node, "hash", &entry->hash_size);
-	entry->hash_algo = prop ? FMAP_HASH_SHA256 : FMAP_HASH_NONE;
-	entry->hash = (uint8_t *)prop;
-
-	return 0;
-}
-
 u64 fdtdec_get_number(const fdt32_t *ptr, unsigned int cells)
 {
 	u64 number = 0;
@@ -1200,7 +1165,8 @@ int fdtdec_setup_memory_size(void)
 	}
 
 	gd->ram_size = (phys_size_t)(res.end - res.start + 1);
-	debug("%s: Initial DRAM size %llx\n", __func__, (u64)gd->ram_size);
+	debug("%s: Initial DRAM size %llx\n", __func__,
+	      (unsigned long long)gd->ram_size);
 
 	return 0;
 }
@@ -1238,9 +1204,66 @@ int fdtdec_setup_memory_banksize(void)
 }
 #endif
 
+#if CONFIG_IS_ENABLED(MULTI_DTB_FIT)
+# if CONFIG_IS_ENABLED(MULTI_DTB_FIT_GZIP) ||\
+	CONFIG_IS_ENABLED(MULTI_DTB_FIT_LZO)
+static int uncompress_blob(const void *src, ulong sz_src, void **dstp)
+{
+	size_t sz_out = CONFIG_SPL_MULTI_DTB_FIT_UNCOMPRESS_SZ;
+	ulong sz_in = sz_src;
+	void *dst;
+	int rc;
+
+	if (CONFIG_IS_ENABLED(GZIP))
+		if (gzip_parse_header(src, sz_in) < 0)
+			return -1;
+	if (CONFIG_IS_ENABLED(LZO))
+		if (!lzop_is_valid_header(src))
+			return -EBADMSG;
+
+	if (CONFIG_IS_ENABLED(MULTI_DTB_FIT_DYN_ALLOC)) {
+		dst = malloc(sz_out);
+		if (!dst) {
+			puts("uncompress_blob: Unable to allocate memory\n");
+			return -ENOMEM;
+		}
+	} else  {
+#  if CONFIG_IS_ENABLED(MULTI_DTB_FIT_USER_DEFINED_AREA)
+		dst = (void *)CONFIG_VAL(MULTI_DTB_FIT_USER_DEF_ADDR);
+#  else
+		return -ENOTSUPP;
+#  endif
+	}
+
+	if (CONFIG_IS_ENABLED(GZIP))
+		rc = gunzip(dst, sz_out, (u8 *)src, &sz_in);
+	else if (CONFIG_IS_ENABLED(LZO))
+		rc = lzop_decompress(src, sz_in, dst, &sz_out);
+
+	if (rc < 0) {
+		/* not a valid compressed blob */
+		puts("uncompress_blob: Unable to uncompress\n");
+		if (CONFIG_IS_ENABLED(MULTI_DTB_FIT_DYN_ALLOC))
+			free(dst);
+		return -EBADMSG;
+	}
+	*dstp = dst;
+	return 0;
+}
+# else
+static int uncompress_blob(const void *src, ulong sz_src, void **dstp)
+{
+	return -ENOTSUPP;
+}
+# endif
+#endif
+
 int fdtdec_setup(void)
 {
 #if CONFIG_IS_ENABLED(OF_CONTROL)
+# if CONFIG_IS_ENABLED(MULTI_DTB_FIT)
+	void *fdt_blob;
+# endif
 # ifdef CONFIG_OF_EMBED
 	/* Get a pointer to the FDT */
 	gd->fdt_blob = __dtb_dt_begin;
@@ -1255,6 +1278,9 @@ int fdtdec_setup(void)
 	/* FDT is at end of image */
 	gd->fdt_blob = (ulong *)&_end;
 #  endif
+# elif defined(CONFIG_OF_BOARD)
+	/* Allow the board to override the fdt address. */
+	gd->fdt_blob = board_fdt_blob_setup();
 # elif defined(CONFIG_OF_HOSTFILE)
 	if (sandbox_read_fdt_from_file()) {
 		puts("Failed to read control FDT\n");
@@ -1263,10 +1289,30 @@ int fdtdec_setup(void)
 # endif
 # ifndef CONFIG_SPL_BUILD
 	/* Allow the early environment to override the fdt address */
-	gd->fdt_blob = (void *)getenv_ulong("fdtcontroladdr", 16,
+	gd->fdt_blob = (void *)env_get_ulong("fdtcontroladdr", 16,
 						(uintptr_t)gd->fdt_blob);
 # endif
+
+# if CONFIG_IS_ENABLED(MULTI_DTB_FIT)
+	/*
+	 * Try and uncompress the blob.
+	 * Unfortunately there is no way to know how big the input blob really
+	 * is. So let us set the maximum input size arbitrarily high. 16MB
+	 * ought to be more than enough for packed DTBs.
+	 */
+	if (uncompress_blob(gd->fdt_blob, 0x1000000, &fdt_blob) == 0)
+		gd->fdt_blob = fdt_blob;
+
+	/*
+	 * Check if blob is a FIT images containings DTBs.
+	 * If so, pick the most relevant
+	 */
+	fdt_blob = locate_dtb_in_fit(gd->fdt_blob);
+	if (fdt_blob)
+		gd->fdt_blob = fdt_blob;
+# endif
 #endif
+
 	return fdtdec_prepare_fdt();
 }
 

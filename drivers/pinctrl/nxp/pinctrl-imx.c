@@ -8,7 +8,7 @@
 #include <mapmem.h>
 #include <linux/io.h>
 #include <linux/err.h>
-#include <dm/device.h>
+#include <dm.h>
 #include <dm/pinctrl.h>
 
 #include "pinctrl-imx.h"
@@ -53,6 +53,7 @@ static int imx_pinctrl_set_state(struct udevice *dev, struct udevice *config)
 	if (fdtdec_get_int_array(gd->fdt_blob, node, "fsl,pins",
 				 pin_data, size >> 2)) {
 		dev_err(dev, "Error reading pin data.\n");
+		devm_kfree(dev, pin_data);
 		return -EINVAL;
 	}
 
@@ -78,6 +79,7 @@ static int imx_pinctrl_set_state(struct udevice *dev, struct udevice *config)
 
 		if ((mux_reg == -1) || (conf_reg == -1)) {
 			dev_err(dev, "Error mux_reg or conf_reg\n");
+			devm_kfree(dev, pin_data);
 			return -EINVAL;
 		}
 
@@ -156,7 +158,7 @@ static int imx_pinctrl_set_state(struct udevice *dev, struct udevice *config)
 		if (!(config_val & IMX_NO_PAD_CTL)) {
 			if (info->flags & SHARE_MUX_CONF_REG) {
 				clrsetbits_le32(info->base + conf_reg,
-						info->mux_mask, config_val);
+						~info->mux_mask, config_val);
 			} else {
 				writel(config_val, info->base + conf_reg);
 			}
@@ -165,6 +167,8 @@ static int imx_pinctrl_set_state(struct udevice *dev, struct udevice *config)
 				conf_reg, config_val);
 		}
 	}
+
+	devm_kfree(dev, pin_data);
 
 	return 0;
 }

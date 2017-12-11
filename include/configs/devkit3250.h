@@ -73,7 +73,6 @@
 #define CONFIG_RMII
 #define CONFIG_PHY_SMSC
 #define CONFIG_LPC32XX_ETH
-#define CONFIG_PHYLIB
 #define CONFIG_PHY_ADDR			0x1F
 #define CONFIG_SYS_FAULT_ECHO_LINK_DOWN
 
@@ -110,9 +109,6 @@
 #define CONFIG_SYS_NAND_PAGE_SIZE		NAND_LARGE_BLOCK_PAGE_SIZE
 #define CONFIG_SYS_NAND_USE_FLASH_BBT
 
-#define CONFIG_CMD_JFFS2
-#define CONFIG_CMD_NAND
-
 /*
  * USB
  */
@@ -124,9 +120,6 @@
  */
 #define CONFIG_SYS_LONGHELP
 #define CONFIG_SYS_CBSIZE		1024
-#define CONFIG_SYS_PBSIZE		\
-	(CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)
-#define CONFIG_SYS_MAXARGS		16
 #define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE
 
 #define CONFIG_AUTO_COMPLETE
@@ -139,7 +132,6 @@
 /*
  * Environment
  */
-#define CONFIG_ENV_IS_IN_NAND		1
 #define CONFIG_ENV_SIZE			SZ_128K
 #define CONFIG_ENV_OFFSET		0x000A0000
 
@@ -170,7 +162,6 @@
 #define CONFIG_SETUP_MEMORY_TAGS
 
 #define CONFIG_BOOTFILE			"uImage"
-#define CONFIG_BOOTARGS			"console=ttyS0,115200n8"
 #define CONFIG_LOADADDR			0x80008000
 
 /*
@@ -181,7 +172,6 @@
 
 /* SPL will use SRAM as stack */
 #define CONFIG_SPL_STACK		0x0000FFF8
-#define CONFIG_SPL_BOARD_INIT
 
 /* Use the framework and generic lib */
 #define CONFIG_SPL_FRAMEWORK
@@ -189,7 +179,6 @@
 /* SPL will use serial */
 
 /* SPL loads an image from NAND */
-#define CONFIG_SPL_NAND_SIMPLE
 #define CONFIG_SPL_NAND_RAW_ONLY
 #define CONFIG_SPL_NAND_DRIVERS
 

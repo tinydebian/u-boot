@@ -41,9 +41,8 @@
 
 #define CONFIG_MACH_TYPE		MACH_TYPE_TRATS
 
-#define CONFIG_BOOTARGS			"Please use defined boot"
 #define CONFIG_BOOTCOMMAND		"run autoboot"
-#define CONFIG_DEFAULT_CONSOLE		"console=ttySAC2,115200n8\0"
+#define CONFIG_DEFAULT_CONSOLE		"ttySAC2,115200n8"
 
 #define CONFIG_SYS_INIT_SP_ADDR	(CONFIG_SYS_LOAD_ADDR \
 					- GENERATED_GBL_DATA_SIZE)
@@ -55,7 +54,6 @@
 #define CONFIG_BOOTBLOCK		"10"
 #define CONFIG_ENV_COMMON_BOOT		"${console} ${meminfo}"
 
-#define CONFIG_ENV_IS_IN_MMC
 #define CONFIG_SYS_MMC_ENV_DEV		CONFIG_MMC_DEFAULT_DEV
 #define CONFIG_ENV_SIZE			4096
 #define CONFIG_ENV_OFFSET		((32 - 4) << 10) /* 32KiB - 4KiB */
@@ -131,7 +129,7 @@
 	"mmcoops=mmc read 0 0x40000000 0x40 8; md 0x40000000 0x400\0" \
 	"verify=n\0" \
 	"rootfstype=ext4\0" \
-	"console=" CONFIG_DEFAULT_CONSOLE \
+	"console=" CONFIG_DEFAULT_CONSOLE "\0" \
 	"meminfo=crashkernel=32M@0x50000000\0" \
 	"nfsroot=/nfsroot/arm\0" \
 	"bootblock=" CONFIG_BOOTBLOCK "\0" \
@@ -167,11 +165,9 @@
 	"fdtaddr=40800000\0" \
 
 /* Falcon mode definitions */
-#define CONFIG_CMD_SPL
 #define CONFIG_SYS_SPL_ARGS_ADDR        CONFIG_SYS_SDRAM_BASE + 0x100
 
 /* GPT */
-#define CONFIG_RANDOM_UUID
 
 /* Security subsystem - enable hw_rand() */
 #define CONFIG_EXYNOS_ACE_SHA
@@ -184,11 +180,9 @@
 
 /* Download menu - Samsung common */
 #define CONFIG_LCD_MENU
-#define CONFIG_LCD_MENU_BOARD
 
 /* Download menu - definitions for check keys */
 #ifndef __ASSEMBLY__
-#include <power/max8997_pmic.h>
 
 #define KEY_PWR_PMIC_NAME		"MAX8997_PMIC"
 #define KEY_PWR_STATUS_REG		MAX8997_REG_STATUS1

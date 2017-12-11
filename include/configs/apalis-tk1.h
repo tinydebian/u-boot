@@ -29,19 +29,16 @@
 #define CONFIG_SUPPORT_EMMC_BOOT	/* eMMC specific */
 
 /* Environment in eMMC, before config block at the end of 1st "boot sector" */
-#define CONFIG_ENV_IS_IN_MMC
 #define CONFIG_ENV_OFFSET		(-CONFIG_ENV_SIZE + \
 					 CONFIG_TDX_CFG_BLOCK_OFFSET)
 #define CONFIG_SYS_MMC_ENV_DEV		0
 #define CONFIG_SYS_MMC_ENV_PART		1
 
 /* USB host support */
-#define CONFIG_USB_EHCI
 #define CONFIG_USB_EHCI_TEGRA
 
 /* PCI host support */
 #undef CONFIG_PCI_SCAN_SHOW
-#define CONFIG_CMD_PCI
 
 /* PCI networking support */
 #define CONFIG_E1000_NO_NVM
@@ -51,18 +48,11 @@
 #define CONFIG_TFTP_BLOCKSIZE		16352
 #define CONFIG_TFTP_TSIZE
 
-/* Miscellaneous commands */
-#define CONFIG_FAT_WRITE
-
 #undef CONFIG_IPADDR
 #define CONFIG_IPADDR		192.168.10.2
 #define CONFIG_NETMASK		255.255.255.0
 #undef CONFIG_SERVERIP
 #define CONFIG_SERVERIP		192.168.10.1
-
-#define CONFIG_BOOTCOMMAND \
-	"run emmcboot; setenv fdtfile ${soc}-apalis-${fdt_board}.dtb && " \
-		"run distro_bootcmd"
 
 #define DFU_ALT_EMMC_INFO	"apalis-tk1.img raw 0x0 0x500 mmcpart 1; " \
 				"boot part 0 1 mmcpart 0; " \
@@ -150,9 +140,6 @@
 /* Increase arguments buffer size */
 #undef CONFIG_SYS_BARGSIZE
 #define CONFIG_SYS_BARGSIZE CONFIG_SYS_CBSIZE
-
-/* Increase print buffer size */
-#define CONFIG_SYS_PBSIZE (CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)
 
 /* Increase maximum number of arguments */
 #undef CONFIG_SYS_MAXARGS

@@ -17,7 +17,6 @@ endif
 
 obj-$(CONFIG_ALTERA_SPI) += altera_spi.o
 obj-$(CONFIG_ATH79_SPI) += ath79_spi.o
-obj-$(CONFIG_ATMEL_DATAFLASH_SPI) += atmel_dataflash_spi.o
 obj-$(CONFIG_ATMEL_SPI) += atmel_spi.o
 obj-$(CONFIG_CADENCE_QSPI) += cadence_qspi.o cadence_qspi_apb.o
 obj-$(CONFIG_CF_SPI) += cf_spi.o
@@ -30,10 +29,12 @@ obj-$(CONFIG_FSL_QSPI) += fsl_qspi.o
 obj-$(CONFIG_ICH_SPI) +=  ich.o
 obj-$(CONFIG_KIRKWOOD_SPI) += kirkwood_spi.o
 obj-$(CONFIG_LPC32XX_SSP) += lpc32xx_ssp.o
+obj-$(CONFIG_MPC8XX_SPI) += mpc8xx_spi.o
 obj-$(CONFIG_MPC8XXX_SPI) += mpc8xxx_spi.o
 obj-$(CONFIG_MVEBU_A3700_SPI) += mvebu_a3700_spi.o
 obj-$(CONFIG_MXC_SPI) += mxc_spi.o
 obj-$(CONFIG_MXS_SPI) += mxs_spi.o
+obj-$(CONFIG_NDS_AE3XX_SPI) += nds_ae3xx_spi.o
 obj-$(CONFIG_OMAP3_SPI) += omap3_spi.o
 obj-$(CONFIG_PIC32_SPI) += pic32_spi.o
 obj-$(CONFIG_ROCKCHIP_SPI) += rk_spi.o

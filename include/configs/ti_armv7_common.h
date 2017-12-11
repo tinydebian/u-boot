@@ -53,7 +53,7 @@
 
 #define DEFAULT_FIT_TI_ARGS \
 	"boot_fit=0\0" \
-	"fit_loadaddr=0x88000000\0" \
+	"fit_loadaddr=0x87000000\0" \
 	"fit_bootfile=fitImage\0" \
 	"update_to_fit=setenv loadaddr ${fit_loadaddr}; setenv bootfile ${fit_bootfile}\0" \
 	"loadfit=run args_mmc; bootm ${loadaddr}#${fdtfile};\0" \
@@ -126,9 +126,6 @@
 
 /* Console I/O Buffer Size */
 #define CONFIG_SYS_CBSIZE		1024
-/* Print Buffer Size */
-#define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE \
-					+ sizeof(CONFIG_SYS_PROMPT) + 16)
 /* Boot Argument Buffer Size */
 #define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE
 
@@ -139,18 +136,9 @@
  */
 #if defined(CONFIG_SPI_BOOT) || defined(CONFIG_NOR) || defined(CONFIG_NAND) || defined(CONFIG_NAND_DAVINCI)
 #define CONFIG_MTD_DEVICE		/* Required for mtdparts */
-#define CONFIG_CMD_MTDPARTS
 #endif
 
 #define CONFIG_SUPPORT_RAW_INITRD
-
-/*
- * Common filesystems support.  When we have removable storage we
- * enabled a number of useful commands and support.
- */
-#if defined(CONFIG_MMC) || defined(CONFIG_USB_STORAGE)
-#define CONFIG_FAT_WRITE
-#endif
 
 /*
  * Our platforms make use of SPL to initalize the hardware (primarily
@@ -207,16 +195,12 @@
 #define CONFIG_SPL_FS_LOAD_ARGS_NAME		"args"
 
 /* RAW SD card / eMMC */
-#define CONFIG_SYS_MMCSD_RAW_MODE_KERNEL_SECTOR	0x900	/* address 0x120000 */
-#define CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTOR	0x80	/* address 0x10000 */
-#define CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTORS	0x80	/* 64KiB */
-
-/* spl export command */
-#define CONFIG_CMD_SPL
+#define CONFIG_SYS_MMCSD_RAW_MODE_KERNEL_SECTOR	0x1700  /* address 0x2E0000 */
+#define CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTOR	0x1500  /* address 0x2A0000 */
+#define CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTORS	0x200   /* 256KiB */
 #endif
 
 /* General parts of the framework, required. */
-#define CONFIG_SPL_BOARD_INIT
 
 #ifdef CONFIG_NAND
 #define CONFIG_SPL_NAND_BASE

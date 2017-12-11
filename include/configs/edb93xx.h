@@ -29,7 +29,6 @@
 #define CONFIG_CMDLINE_TAG		1
 #define CONFIG_INITRD_TAG		1
 #define CONFIG_SETUP_MEMORY_TAGS	1
-#define CONFIG_BOOTARGS		"root=/dev/nfs console=ttyAM0,115200 ip=dhcp"
 #define CONFIG_BOOTFILE		"edb93xx.img"
 
 #define CONFIG_SYS_LDSCRIPT	"board/cirrus/edb93xx/u-boot.lds"
@@ -76,15 +75,9 @@
 #define CONFIG_SYS_CLK_FREQ	14745600	/* EP93xx has a 14.7456 clock */
 
 /* Monitor configuration */
-#define CONFIG_CMD_JFFS2
 
 #define CONFIG_SYS_LONGHELP			/* Enable "long" help in mon */
 #define CONFIG_SYS_CBSIZE		1024	/* Console I/O buffer size */
-/* Print buffer size */
-#define CONFIG_SYS_PBSIZE	(CONFIG_SYS_CBSIZE+sizeof(CONFIG_SYS_PROMPT)+16)
-/* Boot argument buffer size */
-#define CONFIG_SYS_BARGSIZE	CONFIG_SYS_CBSIZE
-#define CONFIG_SYS_MAXARGS	16		/* Max number of command args */
 
 /* Serial port hardware configuration */
 #define CONFIG_PL010_SERIAL
@@ -199,7 +192,6 @@
 #define CONFIG_SYS_MONITOR_LEN		(256 * 1024)
 
 #define CONFIG_ENV_OVERWRITE		/* Vendor params unprotected */
-#define CONFIG_ENV_IS_IN_FLASH
 
 #define CONFIG_ENV_ADDR			0x60040000
 #define CONFIG_ENV_ADDR_REDUND		(CONFIG_ENV_ADDR + CONFIG_ENV_SECT_SIZE)

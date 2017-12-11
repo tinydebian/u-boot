@@ -60,10 +60,6 @@
 	func(MMC, mmc, 0) \
 	func(DHCP, dhcp, na)
 
-#define CONFIG_BOOTCOMMAND \
-	"run findfdt; " \
-	"run distro_bootcmd"
-
 #include <config_distro_bootcmd.h>
 
 /* Miscellaneous configurable options */
@@ -85,7 +81,6 @@
 /* Environment organization */
 #define CONFIG_ENV_OFFSET		(8 * SZ_64K)
 #define CONFIG_ENV_SIZE			SZ_8K
-#define CONFIG_ENV_IS_IN_MMC
 
 #define CONFIG_IMX_THERMAL
 
@@ -112,8 +107,5 @@
 
 #define CONFIG_FEC_XCV_TYPE             RMII
 #define CONFIG_ETHPRIME                 "FEC0"
-
-#define CONFIG_PHYLIB
-#define CONFIG_PHY_MICREL
 
 #endif				/* __CONFIG_H */

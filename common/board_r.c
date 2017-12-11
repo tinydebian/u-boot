@@ -11,21 +11,17 @@
  */
 
 #include <common.h>
+#include <api.h>
 /* TODO: can we just include all these headers whether needed or not? */
 #if defined(CONFIG_CMD_BEDBUG)
 #include <bedbug/type.h>
 #endif
 #include <command.h>
 #include <console.h>
-#ifdef CONFIG_HAS_DATAFLASH
-#include <dataflash.h>
-#endif
 #include <dm.h>
 #include <environment.h>
 #include <fdtdec.h>
-#if defined(CONFIG_CMD_IDE)
 #include <ide.h>
-#endif
 #include <initcall.h>
 #include <init_helpers.h>
 #ifdef CONFIG_PS2KBD
@@ -42,6 +38,7 @@
 #endif
 #include <mmc.h>
 #include <nand.h>
+#include <of_live.h>
 #include <onenand_uboot.h>
 #include <scsi.h>
 #include <serial.h>
@@ -57,10 +54,11 @@
 #include <dm/root.h>
 #include <linux/compiler.h>
 #include <linux/err.h>
-#ifdef CONFIG_AVR32
-#include <asm/arch/mmu.h>
-#endif
 #include <efi_loader.h>
+
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
+#include <friendlyelec/boardtype.h>
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -227,13 +225,6 @@ static int initr_post_backlog(void)
 }
 #endif
 
-#ifdef CONFIG_SYS_DELAYED_ICACHE
-static int initr_icache_enable(void)
-{
-	return 0;
-}
-#endif
-
 #if defined(CONFIG_SYS_INIT_RAM_LOCK) && defined(CONFIG_E500)
 static int initr_unlock_ram_in_cache(void)
 {
@@ -266,7 +257,7 @@ static int initr_malloc(void)
 {
 	ulong malloc_start;
 
-#ifdef CONFIG_SYS_MALLOC_F_LEN
+#if CONFIG_VAL(SYS_MALLOC_F_LEN)
 	debug("Pre-reloc malloc() used %#lx bytes (%ld KB)\n", gd->malloc_ptr,
 	      gd->malloc_ptr / 1024);
 #endif
@@ -294,6 +285,21 @@ static int initr_noncached(void)
 }
 #endif
 
+#ifdef CONFIG_OF_LIVE
+static int initr_of_live(void)
+{
+	int ret;
+
+	bootstage_start(BOOTSTAGE_ID_ACCUM_OF_LIVE, "of_live");
+	ret = of_live_build(gd->fdt_blob, (struct device_node **)&gd->of_root);
+	bootstage_accum(BOOTSTAGE_ID_ACCUM_OF_LIVE);
+	if (ret)
+		return ret;
+
+	return 0;
+}
+#endif
+
 #ifdef CONFIG_DM
 static int initr_dm(void)
 {
@@ -305,7 +311,9 @@ static int initr_dm(void)
 #ifdef CONFIG_TIMER
 	gd->timer = NULL;
 #endif
+	bootstage_start(BOOTSTATE_ID_ACCUM_DM_R, "dm_r");
 	ret = dm_init_and_scan(false);
+	bootstage_accum(BOOTSTATE_ID_ACCUM_DM_R);
 	if (ret)
 		return ret;
 #ifdef CONFIG_TIMER_EARLY
@@ -320,7 +328,6 @@ static int initr_dm(void)
 
 static int initr_bootstage(void)
 {
-	/* We cannot do this before initr_dm() */
 	bootstage_mark_name(BOOTSTAGE_ID_START_UBOOT_R, "board_init_r");
 
 	return 0;
@@ -366,7 +373,7 @@ static int initr_flash(void)
 	*
 	* NOTE: Maybe we should add some WATCHDOG_RESET()? XXX
 	*/
-	if (getenv_yesno("flashchecksum") == 1) {
+	if (env_get_yesno("flashchecksum") == 1) {
 		printf("  CRC: %08X", crc32(0,
 			(const unsigned char *) CONFIG_SYS_FLASH_BASE,
 			flash_size));
@@ -432,20 +439,11 @@ static int initr_onenand(void)
 }
 #endif
 
-#ifdef CONFIG_GENERIC_MMC
+#ifdef CONFIG_MMC
 static int initr_mmc(void)
 {
 	puts("MMC:   ");
 	mmc_initialize(gd->bd);
-	return 0;
-}
-#endif
-
-#ifdef CONFIG_HAS_DATAFLASH
-static int initr_dataflash(void)
-{
-	AT91F_DataflashInit();
-	dataflash_print_info();
 	return 0;
 }
 #endif
@@ -480,38 +478,21 @@ static int initr_env(void)
 	else
 		set_default_env(NULL);
 #ifdef CONFIG_OF_CONTROL
-	setenv_addr("fdtcontroladdr", gd->fdt_blob);
+	env_set_addr("fdtcontroladdr", gd->fdt_blob);
 #endif
 
 	/* Initialize from environment */
-	load_addr = getenv_ulong("loadaddr", 16, load_addr);
-#if defined(CONFIG_SYS_EXTBDINFO)
-#if defined(CONFIG_405GP) || defined(CONFIG_405EP)
-#if defined(CONFIG_I2CFAST)
-	/*
-	 * set bi_iic_fast for linux taking environment variable
-	 * "i2cfast" into account
-	 */
-	{
-		char *s = getenv("i2cfast");
+	load_addr = env_get_ulong("loadaddr", 16, load_addr);
 
-		if (s && ((*s == 'y') || (*s == 'Y'))) {
-			gd->bd->bi_iic_fast[0] = 1;
-			gd->bd->bi_iic_fast[1] = 1;
-		}
-	}
-#endif /* CONFIG_I2CFAST */
-#endif /* CONFIG_405GP, CONFIG_405EP */
-#endif /* CONFIG_SYS_EXTBDINFO */
 	return 0;
 }
 
-#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
 #define SUNXI_BOOTED_FROM_MMC0	0
 #define SUNXI_BOOTED_FROM_MMC2	2
 #ifdef CONFIG_MACH_SUN8I_H3_NANOPI
 #define SPL_ADDR		0x0
-#elif defined(CONFIG_MACH_SUN8I_H5_NANOPI)
+#elif defined(CONFIG_MACH_SUN50I_H5_NANOPI)
 #define SPL_ADDR		0x10000
 #endif
 static int boot_source;
@@ -529,8 +510,8 @@ static int init_env_boot_mmc(void)
 		printf("ERROR: unsupported boot mmc %d\n", boot_source);
 		hang();
 	}
-	if (setenv("boot_mmc", boot_mmc_buf)) {
-		printf("setenv boot_mmc=%s fail\n", boot_mmc_buf);
+	if (env_set("boot_mmc", boot_mmc_buf)) {
+		printf("env_set boot_mmc=%s fail\n", boot_mmc_buf);
 		hang();
 	}
 	return 0;
@@ -565,7 +546,7 @@ static int initr_api(void)
 #endif
 
 /* enable exceptions */
-#if defined(CONFIG_ARM) || defined(CONFIG_AVR32)
+#ifdef CONFIG_ARM
 static int initr_enable_interrupts(void)
 {
 	enable_interrupts();
@@ -579,21 +560,21 @@ static int initr_ethaddr(void)
 	bd_t *bd = gd->bd;
 
 	/* kept around for legacy kernels only ... ignore the next section */
-	eth_getenv_enetaddr("ethaddr", bd->bi_enetaddr);
+	eth_env_get_enetaddr("ethaddr", bd->bi_enetaddr);
 #ifdef CONFIG_HAS_ETH1
-	eth_getenv_enetaddr("eth1addr", bd->bi_enet1addr);
+	eth_env_get_enetaddr("eth1addr", bd->bi_enet1addr);
 #endif
 #ifdef CONFIG_HAS_ETH2
-	eth_getenv_enetaddr("eth2addr", bd->bi_enet2addr);
+	eth_env_get_enetaddr("eth2addr", bd->bi_enet2addr);
 #endif
 #ifdef CONFIG_HAS_ETH3
-	eth_getenv_enetaddr("eth3addr", bd->bi_enet3addr);
+	eth_env_get_enetaddr("eth3addr", bd->bi_enet3addr);
 #endif
 #ifdef CONFIG_HAS_ETH4
-	eth_getenv_enetaddr("eth4addr", bd->bi_enet4addr);
+	eth_env_get_enetaddr("eth4addr", bd->bi_enet4addr);
 #endif
 #ifdef CONFIG_HAS_ETH5
-	eth_getenv_enetaddr("eth5addr", bd->bi_enet5addr);
+	eth_env_get_enetaddr("eth5addr", bd->bi_enet5addr);
 #endif
 	return 0;
 }
@@ -659,7 +640,7 @@ static int initr_post(void)
 }
 #endif
 
-#if defined(CONFIG_CMD_PCMCIA) && !defined(CONFIG_CMD_IDE)
+#if defined(CONFIG_CMD_PCMCIA) && !defined(CONFIG_IDE)
 static int initr_pcmcia(void)
 {
 	puts("PCMCIA:");
@@ -668,14 +649,10 @@ static int initr_pcmcia(void)
 }
 #endif
 
-#if defined(CONFIG_CMD_IDE)
+#if defined(CONFIG_IDE)
 static int initr_ide(void)
 {
-#ifdef	CONFIG_IDE_8xx_PCCARD
-	puts("PCMCIA:");
-#else
 	puts("IDE:   ");
-#endif
 #if defined(CONFIG_START_IDE)
 	if (board_start_ide())
 		ide_init();
@@ -697,14 +674,14 @@ int initr_mem(void)
 	char memsz[32];
 
 # ifdef CONFIG_PRAM
-	pram = getenv_ulong("pram", 10, CONFIG_PRAM);
+	pram = env_get_ulong("pram", 10, CONFIG_PRAM);
 # endif
 # if defined(CONFIG_LOGBUFFER) && !defined(CONFIG_ALT_LB_ADDR)
 	/* Also take the logbuffer into account (pram is in kB) */
 	pram += (LOGBUFF_LEN + LOGBUFF_OVERHEAD) / 1024;
 # endif
 	sprintf(memsz, "%ldk", (long int) ((gd->ram_size / 1024) - pram));
-	setenv("mem", memsz);
+	env_set("mem", memsz);
 
 	return 0;
 }
@@ -728,7 +705,47 @@ static int initr_kbd(void)
 }
 #endif
 
-#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI)
+char nanopi_board[][BOARD_NAME_LENGTH] = {
+    "nanopi-m1",                    
+    "nanopi-neo",               
+    "nanopi-neo-air",
+    "nanopi-m1-plus",
+    "nanopi-duo",
+    "nanopi-neo-core",
+    "nanopi-k1",
+};
+#if 0
+int nanopi_dram_clk[] = {
+    576 /* NanoPi-M1 */,
+    408 /* NanoPi-NEO */,
+    408 /* NanoPi-NEO-Air */,
+    576 /* NanoPi-M1-Plus */,
+    408 /* NanoPi-Duo */,
+    408 /* NanoPi-NEO-Core */,
+    576 /* NanoPi-K1 */,
+};
+#endif
+#elif defined(CONFIG_MACH_SUN50I_H5_NANOPI)
+char nanopi_board[][BOARD_NAME_LENGTH] = {
+    "nanopi-neo-core2",
+    "nanopi-neo2",
+    "nanopi-neo-plus2",
+    "nanopi-m1-plus2",
+    "nanopi-k1-plus",
+};
+#if 0
+int nanopi_dram_clk[] = {
+    504 /* NanoPi-NEO-Core2 */,
+    504 /* NanoPi-NEO2 */,
+    504 /* NanoPi-NEO-Plus2 */,
+    504 /* NanoPi-M1-Plus2 */,
+    504 /* NanoPi-K1-Plus */,
+};
+#endif
+#endif
+
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
 #include <asm/arch/gpio.h>
 #include <asm/gpio.h>
 int nanopi_read_gpio(void)
@@ -760,25 +777,23 @@ int nanopi_read_gpio(void)
 	return gpio;
 }
 
-int nanopi_read_extra_gpio(void)
+int nanopi_read_extra_gpio(char pin_name[][8], int num, int pull)
 {
 	int ret = -1, gpio = 0;
 	char pin_label[16];
-	char pin[1][8] = {
-		"PC6",
-	};	
-	int i, pin_num, id_pin, pin_value, old_func;
-	
-	pin_num = sizeof(pin) / sizeof(pin[0]);
-	for (i=0; i<pin_num; i++) {
+	char pin[8][8];
+	int i, id_pin, pin_value, old_func;
+
+	for (i=0; i<num; i++) {
 		memset(pin_label, 0, sizeof(pin_label));
 		sprintf(pin_label, "boardid_%d", i);
+		strcpy(pin[i], pin_name[i]);
 		id_pin = sunxi_name_to_gpio(pin[i]);
 		ret = gpio_request(id_pin, pin_label);
 		if (!ret) {
 			old_func = sunxi_gpio_get_cfgpin(id_pin);	// store func
 			gpio_direction_input(id_pin);
-			sunxi_gpio_set_pull(id_pin, SUNXI_GPIO_PULL_DOWN);
+			sunxi_gpio_set_pull(id_pin, pull);
 			mdelay(2);
 			pin_value = gpio_get_value(id_pin);
 			gpio |= pin_value<<i;
@@ -796,86 +811,104 @@ int nanopi_get_board(void)
 {
 	int ret = -1, boardtype = -1, cputype = -1;
 	unsigned int sid[4];
-	//int extra_gpio;
+	int extra_gpio;
 	int has_emmc = 0;
-	const char *model = fdt_getprop(gd->fdt_blob, 0, "model", NULL);
+	char pin[8][8];
 	
 	ret = sunxi_get_sid(sid);
 	if (ret == 0 && sid[0] != 0) {
 		cputype = sid[0] & 0xff;
 	}
-	printf("cputype is 0x%x\n", cputype);
 	switch (cputype) {
 	case CPU_TYPE_H2_1:
 	case CPU_TYPE_H2_2:
 		boardtype = BOARD_TYPE_NANOPI_DUO;
-		setenv("cpu", "h2-plus");
+		env_set("cpu", "h2-plus");
 		break;
 	case CPU_TYPE_H5:			// don't really rely on this(H5-CPUID=0x01?)
 		boardtype = nanopi_read_gpio();
-		setenv("cpu", "h5");	// nowhere is using env-cpu=h5, so it doesn't matter.
+		env_set("cpu", "h5");	// nowhere is using env-cpu=h5, so it doesn't matter.
+		// nanopi-m1-plus2 or nanopi-k1-plus
+		if (boardtype == BOARD_TYPE_NANOPI_M1_PLUS2) {
+			strcpy(pin[0], "PG12");
+			extra_gpio = nanopi_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DISABLE);
+			if (extra_gpio == 0)
+				boardtype = BOARD_TYPE_NANOPI_K1_PLUS;
+			break;
+		}
 		break;
 	default:					// dafault is H3.boot.src will use env-cpu=h3
 		boardtype = nanopi_read_gpio();
-		setenv("cpu", "h3");	
-		// extra_gpio = nanopi_read_extra_gpio(); 
-		if (!strcasecmp(model, "NanoPi H3")) { // make sure this is really a H3-Uboot
-			switch (boardtype) {
-			case BOARD_TYPE_NANOPI_NEO:
-				switch (boot_source) {
-				case SUNXI_BOOTED_FROM_MMC0:
-					has_emmc = !run_command("mmc dev 1", 0);
-					run_command("mmc dev 0", 0);
-					break;
-				case SUNXI_BOOTED_FROM_MMC2:
-					has_emmc = 1;
-					break;
-				}
-				printf("eMMC %s\n", has_emmc?"exist":"not exist");
-
-				if (/*extra_gpio == 1 &&*/has_emmc == 1)
-					boardtype = BOARD_TYPE_NANOPI_NEO_CORE;
-
+		env_set("cpu", "h3");	
+		// nanopi-neo or nanopi-neo-core ?
+		if (boardtype == BOARD_TYPE_NANOPI_NEO) {
+			strcpy(pin[0], "PC6");
+			extra_gpio = nanopi_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DOWN);; 
+			switch (boot_source) {
+			case SUNXI_BOOTED_FROM_MMC0:
+				printf("Detecting eMMC...\n");
+				has_emmc = !run_command("mmc dev 1", 0);
+				run_command("mmc dev 0", 0);
 				break;
-			default:
+			case SUNXI_BOOTED_FROM_MMC2:
+				has_emmc = 1;
 				break;
 			}
+			printf("eMMC %s, PC6=%d\n", has_emmc?"exist":"not exist", extra_gpio);
+
+			if (extra_gpio == 1 || has_emmc == 1)
+				boardtype = BOARD_TYPE_NANOPI_NEO_CORE;
+			break;
 		}
+
+		// nanopi-m1-plus or nanopi-k1
+		if (boardtype == BOARD_TYPE_NANOPI_M1_PLUS) {
+			strcpy(pin[0], "PD6");
+			extra_gpio = nanopi_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DISABLE);
+			if (extra_gpio == 1)
+				boardtype = BOARD_TYPE_NANOPI_K1;
+			break;
+		}
+
 		break;
 	}	
 	if (boardtype>=0 && boardtype<BOARD_TYPE_MAX) {
 		return boardtype;
 	} else {
-		printf("UNKNOWN BOARDTYPE\n");
+		printf("UNKNOWN BOARDTYPE: boardtype=%d cputype=%d\n", boardtype, cputype);
 		hang();
 	}
 	return boardtype;
 }
 #endif
 
-#if defined(CONFIG_MACH_SUN8I_H3_NANOPI)
-static char board[BOARD_TYPE_MAX][32] = {
-	"nanopi-m1",			
-	"nanopi-neo",
-	"nanopi-neo-air",
-	"nanopi-m1-plus",
-	"nanopi-duo",
-	"nanopi-neo-core",
-};
-#elif defined(CONFIG_MACH_SUN8I_H5_NANOPI)
-static char board[4][32] = {
-	"nanopi-neo-core2",
-	"nanopi-neo2",
-	"nanopi-neo-plus2",
-	"nanopi-m1-plus2",
-};
-#endif
-#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
+static int print_sid(void)
+{
+	unsigned int sid[4];
+	int ret;
+
+	ret = sunxi_get_sid(sid);
+	if (ret == 0 && sid[0] != 0) {
+		printf("SID: %x-%x-%x-%x\n", sid[0], sid[1], sid[1], sid[2]);
+	}
+	return 0;
+}
+int npi_boardtype = -1;
 static int setup_env_boardtype(void)
 {
-	int boardtype = -1;
-	boardtype = nanopi_get_board();
-	setenv("board", board[boardtype]);
+	npi_boardtype = nanopi_get_board();
+	if (nanopi_board[npi_boardtype][0] == '\0' || env_set("board", nanopi_board[npi_boardtype])) {
+		printf("fail to env_set board\n");
+		hang();
+	}
+	printf("BOARD: %s\n", nanopi_board[npi_boardtype]);
+	return 0;
+}
+
+static int dram_set_clk(void)
+{
+	// TODO
 	return 0;
 }
 #endif
@@ -919,15 +952,18 @@ static init_fnc_t init_sequence_r[] = {
 #endif
 	initr_barrier,
 	initr_malloc,
+	initr_bootstage,	/* Needs malloc() but has its own timer */
 	initr_console_record,
 #ifdef CONFIG_SYS_NONCACHED_MEMORY
 	initr_noncached,
 #endif
 	bootstage_relocate,
+#ifdef CONFIG_OF_LIVE
+	initr_of_live,
+#endif
 #ifdef CONFIG_DM
 	initr_dm,
 #endif
-	initr_bootstage,
 #if defined(CONFIG_ARM) || defined(CONFIG_NDS32)
 	board_init,	/* Setup chipselects */
 #endif
@@ -967,9 +1003,6 @@ static init_fnc_t init_sequence_r[] = {
 	initr_post_backlog,
 #endif
 	INIT_FUNC_WATCHDOG_RESET
-#ifdef CONFIG_SYS_DELAYED_ICACHE
-	initr_icache_enable,
-#endif
 #if defined(CONFIG_PCI) && defined(CONFIG_SYS_EARLY_PCI_INIT)
 	/*
 	 * Do early PCI configuration _before_ the flash gets initialised,
@@ -998,14 +1031,11 @@ static init_fnc_t init_sequence_r[] = {
 #ifdef CONFIG_CMD_ONENAND
 	initr_onenand,
 #endif
-#ifdef CONFIG_GENERIC_MMC
+#ifdef CONFIG_MMC
 	initr_mmc,
 #endif
-#ifdef CONFIG_HAS_DATAFLASH
-	initr_dataflash,
-#endif
 	initr_env,
-#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
 	init_env_boot_mmc,
 #endif
 #ifdef CONFIG_SYS_BOOTPARAMS_LEN
@@ -1030,6 +1060,7 @@ static init_fnc_t init_sequence_r[] = {
 #endif
 	console_init_r,		/* fully init console as a device */
 #ifdef CONFIG_DISPLAY_BOARDINFO_LATE
+	console_announce_r,
 	show_board_info,
 #endif
 #ifdef CONFIG_ARCH_MISC_INIT
@@ -1043,10 +1074,10 @@ static init_fnc_t init_sequence_r[] = {
 	initr_kgdb,
 #endif
 	interrupt_init,
-#if defined(CONFIG_ARM) || defined(CONFIG_AVR32)
+#ifdef CONFIG_ARM
 	initr_enable_interrupts,
 #endif
-#if defined(CONFIG_MICROBLAZE) || defined(CONFIG_AVR32) || defined(CONFIG_M68K)
+#if defined(CONFIG_MICROBLAZE) || defined(CONFIG_M68K)
 	timer_init,		/* initialize timer */
 #endif
 #if defined(CONFIG_LED_STATUS)
@@ -1073,10 +1104,10 @@ static init_fnc_t init_sequence_r[] = {
 #ifdef CONFIG_POST
 	initr_post,
 #endif
-#if defined(CONFIG_CMD_PCMCIA) && !defined(CONFIG_CMD_IDE)
+#if defined(CONFIG_CMD_PCMCIA) && !defined(CONFIG_IDE)
 	initr_pcmcia,
 #endif
-#if defined(CONFIG_CMD_IDE)
+#if defined(CONFIG_IDE)
 	initr_ide,
 #endif
 #ifdef CONFIG_LAST_STAGE_INIT
@@ -1101,8 +1132,10 @@ static init_fnc_t init_sequence_r[] = {
 #if defined(CONFIG_SPARC)
 	prom_init,
 #endif
-#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
+	print_sid,
 	setup_env_boardtype,
+	dram_set_clk,
 #endif
 	run_main_loop,
 };
@@ -1121,10 +1154,6 @@ void board_init_r(gd_t *new_gd, ulong dest_addr)
 
 #ifdef CONFIG_NEEDS_MANUAL_RELOC
 	int i;
-#endif
-
-#ifdef CONFIG_AVR32
-	mmu_init_r(dest_addr);
 #endif
 
 #if !defined(CONFIG_X86) && !defined(CONFIG_ARM) && !defined(CONFIG_ARM64)

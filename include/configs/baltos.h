@@ -35,12 +35,8 @@
 #define CONFIG_SYS_BOOTM_LEN         SZ_64M
 
 /* UBI Support */
-#define CONFIG_CMD_MTDPARTS
 #define CONFIG_MTD_PARTITIONS
 #define CONFIG_MTD_DEVICE
-#define CONFIG_RBTREE
-#define CONFIG_LZO
-#define CONFIG_CMD_UBIFS
 
 /* I2C configuration */
 #undef CONFIG_SYS_OMAP24_I2C_SPEED
@@ -49,13 +45,11 @@
 #ifdef CONFIG_NAND
 #define CONFIG_SYS_NAND_U_BOOT_OFFS	0x00080000
 #ifdef CONFIG_SPL_OS_BOOT
-#define CONFIG_CMD_SPL_NAND_OFS 0x00080000 /* os parameters */
 #define CONFIG_SYS_NAND_SPL_KERNEL_OFFS 0x00200000 /* kernel offset */
-#define CONFIG_CMD_SPL_WRITE_SIZE	0x2000
 #endif
 #define NANDARGS \
-	"mtdids=" MTDIDS_DEFAULT "\0" \
-	"mtdparts=" MTDPARTS_DEFAULT "\0" \
+	"mtdids=" CONFIG_MTDIDS_DEFAULT "\0" \
+	"mtdparts=" CONFIG_MTDPARTS_DEFAULT "\0" \
 	"nandargs=setenv bootargs console=${console} " \
 		"${optargs} " \
 		"${mtdparts} " \
@@ -229,7 +223,6 @@
 #define CONFIG_SYS_NS16550_COM5		0x481a8000	/* UART4 */
 #define CONFIG_SYS_NS16550_COM6		0x481aa000	/* UART5 */
 
-#define CONFIG_CMD_EEPROM
 #define CONFIG_ENV_EEPROM_IS_ON_I2C
 #define CONFIG_SYS_I2C_EEPROM_ADDR	0x50	/* Main EEPROM */
 #define CONFIG_SYS_I2C_EEPROM_ADDR_LEN	2
@@ -248,12 +241,7 @@
 /* General network SPL, both CPSW and USB gadget RNDIS */
 #define CONFIG_SPL_NET_VCI_STRING	"AM335x U-Boot SPL"*/
 
-#define CONFIG_SPL_LDSCRIPT		"arch/arm/mach-omap2/am33xx/u-boot-spl.lds"
-
 #ifdef CONFIG_NAND
-#define CONFIG_NAND_OMAP_GPMC
-#define CONFIG_NAND_OMAP_GPMC_PREFETCH
-#define CONFIG_NAND_OMAP_ELM
 #define CONFIG_SYS_NAND_5_ADDR_CYCLE
 #define CONFIG_SYS_NAND_PAGE_COUNT	(CONFIG_SYS_NAND_BLOCK_SIZE / \
 					 CONFIG_SYS_NAND_PAGE_SIZE)
@@ -292,12 +280,6 @@
 #define CONFIG_AM335X_USB1
 #define CONFIG_AM335X_USB1_MODE MUSB_OTG
 
-#ifdef CONFIG_USB_MUSB_GADGET
-#define CONFIG_USB_ETHER
-#define CONFIG_USB_ETH_RNDIS
-#define CONFIG_USBNET_HOST_ADDR	"de:ad:be:af:00:00"
-#endif /* CONFIG_USB_MUSB_GADGET */
-
 #if defined(CONFIG_SPL_BUILD) && defined(CONFIG_SPL_USBETH_SUPPORT)
 /* disable host part of MUSB in SPL */
 /* disable EFI partitions and partition UUID support */
@@ -307,8 +289,6 @@
 #endif
 
 /* Network. */
-#define CONFIG_PHY_GIGE
-#define CONFIG_PHYLIB
 #define CONFIG_PHY_ADDR			0
 #define CONFIG_PHY_SMSC
 #define CONFIG_MII
@@ -316,18 +296,7 @@
 
 /* NAND support */
 #ifdef CONFIG_NAND
-#define CONFIG_CMD_NAND
 #define GPMC_NAND_ECC_LP_x8_LAYOUT	1
-#if !defined(CONFIG_SPI_BOOT) && !defined(CONFIG_NOR_BOOT)
-#define MTDIDS_DEFAULT			"nand0=omap2-nand.0"
-#define MTDPARTS_DEFAULT		"mtdparts=omap2-nand.0:128k(SPL)," \
-					"128k(SPL.backup1)," \
-					"128k(SPL.backup2)," \
-					"128k(SPL.backup3)," \
-					"1920k(u-boot)," \
-					"-(UBI)"
-#define CONFIG_ENV_IS_NOWHERE
-#endif
 #endif
 
 #endif	/* ! __CONFIG_BALTOS_H */

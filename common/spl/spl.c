@@ -6,6 +6,7 @@
  *
  * SPDX-License-Identifier:	GPL-2.0+
  */
+
 #include <common.h>
 #include <dm.h>
 #include <spl.h>
@@ -17,6 +18,7 @@
 #include <malloc.h>
 #include <dm/root.h>
 #include <linux/compiler.h>
+#include <fdt_support.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -56,6 +58,14 @@ __weak int spl_start_uboot(void)
 	return 1;
 }
 
+/* weak default platform specific function to initialize
+ * dram banks
+ */
+__weak int dram_init_banksize(void)
+{
+	return 0;
+}
+
 /*
  * Weak default function for arch specific zImage check. Return zero
  * and fill start and end address if image is recognized.
@@ -65,6 +75,33 @@ int __weak bootz_setup(ulong image, ulong *start, ulong *end)
 	 return 1;
 }
 #endif
+
+void spl_fixup_fdt(void)
+{
+#if defined(CONFIG_SPL_OF_LIBFDT) && defined(CONFIG_SYS_SPL_ARGS_ADDR)
+	void *fdt_blob = (void *)CONFIG_SYS_SPL_ARGS_ADDR;
+	int err;
+
+	err = fdt_check_header(fdt_blob);
+	if (err < 0) {
+		printf("fdt_root: %s\n", fdt_strerror(err));
+		return;
+	}
+
+	/* fixup the memory dt node */
+	err = fdt_shrink_to_minimum(fdt_blob, 0);
+	if (err == 0) {
+		printf("spl: fdt_shrink_to_minimum err - %d\n", err);
+		return;
+	}
+
+	err = arch_fixup_fdt(fdt_blob);
+	if (err) {
+		printf("spl: arch_fixup_fdt err - %d\n", err);
+		return;
+	}
+#endif
+}
 
 /*
  * Weak default function for board specific cleanup/preparation before
@@ -85,9 +122,6 @@ void spl_set_header_raw_uboot(struct spl_image_info *spl_image)
 {
 	spl_image->size = CONFIG_SYS_MONITOR_LEN;
 	spl_image->entry_point = CONFIG_SYS_UBOOT_START;
-#ifdef CONFIG_CPU_V7M
-	spl_image->entry_point |= 0x1;
-#endif
 	spl_image->load_addr = CONFIG_SYS_TEXT_BASE;
 	spl_image->os = IH_OS_U_BOOT;
 	spl_image->name = "U-Boot";
@@ -120,11 +154,11 @@ int spl_parse_image_header(struct spl_image_info *spl_image,
 		spl_image->os = image_get_os(header);
 		spl_image->name = image_get_name(header);
 		debug("spl: payload image: %.*s load addr: 0x%lx size: %d\n",
-			(int)sizeof(spl_image->name), spl_image->name,
+			IH_NMLEN, spl_image->name,
 			spl_image->load_addr, spl_image->size);
 #else
 		/* LEGACY image not supported */
-		debug("Legacy boot image support not enabled, proceeding to other boot methods");
+		debug("Legacy boot image support not enabled, proceeding to other boot methods\n");
 		return -EINVAL;
 #endif
 	} else {
@@ -162,7 +196,7 @@ int spl_parse_image_header(struct spl_image_info *spl_image,
 		spl_set_header_raw_uboot(spl_image);
 #else
 		/* RAW image not supported, proceed to other boot methods. */
-		debug("Raw boot image support not enabled, proceeding to other boot methods");
+		debug("Raw boot image support not enabled, proceeding to other boot methods\n");
 		return -EINVAL;
 #endif
 	}
@@ -187,15 +221,22 @@ static int spl_common_init(bool setup_malloc)
 
 	debug("spl_early_init()\n");
 
-#if defined(CONFIG_SYS_MALLOC_F_LEN)
+#if CONFIG_VAL(SYS_MALLOC_F_LEN)
 	if (setup_malloc) {
 #ifdef CONFIG_MALLOC_F_ADDR
 		gd->malloc_base = CONFIG_MALLOC_F_ADDR;
 #endif
-		gd->malloc_limit = CONFIG_SYS_MALLOC_F_LEN;
+		gd->malloc_limit = CONFIG_VAL(SYS_MALLOC_F_LEN);
 		gd->malloc_ptr = 0;
 	}
 #endif
+	ret = bootstage_init(true);
+	if (ret) {
+		debug("%s: Failed to set up bootstage: ret=%d\n", __func__,
+		      ret);
+		return ret;
+	}
+	bootstage_mark_name(BOOTSTAGE_ID_START_SPL, "spl");
 	if (CONFIG_IS_ENABLED(OF_CONTROL) && !CONFIG_IS_ENABLED(OF_PLATDATA)) {
 		ret = fdtdec_setup();
 		if (ret) {
@@ -203,9 +244,11 @@ static int spl_common_init(bool setup_malloc)
 			return ret;
 		}
 	}
-	if (IS_ENABLED(CONFIG_SPL_DM)) {
+	if (CONFIG_IS_ENABLED(DM)) {
+		bootstage_start(BOOTSTATE_ID_ACCUM_DM_SPL, "dm_spl");
 		/* With CONFIG_SPL_OF_PLATDATA, bring in all devices */
 		ret = dm_init_and_scan(!CONFIG_IS_ENABLED(OF_PLATDATA));
+		bootstage_accum(BOOTSTATE_ID_ACCUM_DM_SPL);
 		if (ret) {
 			debug("dm_init_and_scan() returned error %d\n", ret);
 			return ret;
@@ -213,6 +256,12 @@ static int spl_common_init(bool setup_malloc)
 	}
 
 	return 0;
+}
+
+void spl_set_bd(void)
+{
+	if (!gd->bd)
+		gd->bd = &bdata;
 }
 
 int spl_early_init(void)
@@ -323,6 +372,12 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 
 	debug(">>spl:board_init_r()\n");
 
+	spl_set_bd();
+
+#ifdef CONFIG_SPL_OS_BOOT
+	dram_init_banksize();
+#endif
+
 #if defined(CONFIG_SYS_SPL_MALLOC_START)
 	mem_malloc_init(CONFIG_SYS_SPL_MALLOC_START,
 			CONFIG_SYS_SPL_MALLOC_SIZE);
@@ -332,7 +387,7 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 		if (spl_init())
 			hang();
 	}
-#ifndef CONFIG_PPC
+#if !defined(CONFIG_PPC) && !defined(CONFIG_ARCH_MX6)
 	/*
 	 * timer_init() does not exist on PPC systems. The timer is initialized
 	 * and enabled (decrementer) in interrupt_init() here.
@@ -345,6 +400,9 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 #endif
 
 	memset(&spl_image, '\0', sizeof(spl_image));
+#ifdef CONFIG_SYS_SPL_ARGS_ADDR
+	spl_image.arg = (void *)CONFIG_SYS_SPL_ARGS_ADDR;
+#endif
 	board_boot_order(spl_boot_list);
 
 	if (boot_from_devices(&spl_image, spl_boot_list,
@@ -353,6 +411,9 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 		hang();
 	}
 
+#ifdef CONFIG_CPU_V7M
+	spl_image.entry_point |= 0x1;
+#endif
 	switch (spl_image.os) {
 	case IH_OS_U_BOOT:
 		debug("Jumping to U-Boot\n");
@@ -360,17 +421,31 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 #ifdef CONFIG_SPL_OS_BOOT
 	case IH_OS_LINUX:
 		debug("Jumping to Linux\n");
+		spl_fixup_fdt();
 		spl_board_prepare_for_linux();
-		jump_to_image_linux(&spl_image,
-				    (void *)CONFIG_SYS_SPL_ARGS_ADDR);
+		jump_to_image_linux(&spl_image);
 #endif
 	default:
 		debug("Unsupported OS image.. Jumping nevertheless..\n");
 	}
-#if defined(CONFIG_SYS_MALLOC_F_LEN) && !defined(CONFIG_SYS_SPL_MALLOC_SIZE)
+#if CONFIG_VAL(SYS_MALLOC_F_LEN) && !defined(CONFIG_SYS_SPL_MALLOC_SIZE)
 	debug("SPL malloc() used %#lx bytes (%ld KB)\n", gd->malloc_ptr,
 	      gd->malloc_ptr / 1024);
 #endif
+#ifdef CONFIG_BOOTSTAGE_STASH
+	int ret;
+
+	bootstage_mark_name(BOOTSTAGE_ID_END_SPL, "end_spl");
+	ret = bootstage_stash((void *)CONFIG_BOOTSTAGE_STASH_ADDR,
+			      CONFIG_BOOTSTAGE_STASH_SIZE);
+	if (ret)
+		debug("Failed to stash bootstage: err=%d\n", ret);
+#endif
+
+	if (CONFIG_IS_ENABLED(ATF_SUPPORT)) {
+		debug("loaded - jumping to U-Boot via ATF BL31.\n");
+		bl31_entry();
+	}
 
 	debug("loaded - jumping to U-Boot...\n");
 	spl_board_prepare_for_boot();
@@ -383,7 +458,6 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
  */
 void preloader_console_init(void)
 {
-	gd->bd = &bdata;
 	gd->baudrate = CONFIG_BAUDRATE;
 
 	serial_init();		/* serial communications setup */
@@ -421,7 +495,7 @@ ulong spl_relocate_stack_gd(void)
 	gd_t *new_gd;
 	ulong ptr = CONFIG_SPL_STACK_R_ADDR;
 
-#ifdef CONFIG_SPL_SYS_MALLOC_SIMPLE
+#if defined(CONFIG_SPL_SYS_MALLOC_SIMPLE) && CONFIG_VAL(SYS_MALLOC_F_LEN)
 	if (CONFIG_SPL_STACK_R_MALLOC_SIMPLE_LEN) {
 		ptr -= CONFIG_SPL_STACK_R_MALLOC_SIMPLE_LEN;
 		gd->malloc_base = ptr;

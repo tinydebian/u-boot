@@ -48,50 +48,50 @@
 #include <dt-bindings/pinctrl/sun4i-a10.h>
 
 / {
-	model = "NanoPi H3";
-	compatible = "friendlyarm,nanopi-neo-air", "allwinner,sun8i-h3";
+    model = "FriendlyElec NanoPi H3";
+    compatible = "friendlyarm,nanopi-neo-air", "allwinner,sun8i-h3";
 
-	aliases {
-		serial0 = &uart0;
-	};
+    aliases {
+        serial0 = &uart0;
+    };
 
-	chosen {
-		stdout-path = "serial0:115200n8";
-	};
+    chosen {
+        stdout-path = "serial0:115200n8";
+    };
 
-	leds {
-		compatible = "gpio-leds";
+    leds {
+        compatible = "gpio-leds";
 
-		pwr {
-			label = "nanopi:green:pwr";
-			gpios = <&r_pio 0 10 GPIO_ACTIVE_HIGH>; /* PL10 */
-			default-state = "on";
-		};
+        pwr {
+            label = "nanopi:green:pwr";
+            gpios = <&r_pio 0 10 GPIO_ACTIVE_HIGH>; /* PL10 */
+            default-state = "on";
+        };
 
-		status {
-			label = "nanopi:blue:status";
-			gpios = <&pio 0 10 GPIO_ACTIVE_HIGH>; /* PA10 */
-		};
-	};
+        status {
+            label = "nanopi:blue:status";
+            gpios = <&pio 0 10 GPIO_ACTIVE_HIGH>; /* PA10 */
+        };
+    };
 };
 
 &mmc0 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&mmc0_pins_a>, <&mmc0_cd_pin>;
-	vmmc-supply = <&reg_vcc3v3>;
-	bus-width = <4>;
-	cd-gpios = <&pio 5 6 GPIO_ACTIVE_HIGH>; /* PF6 */
-	cd-inverted;
-	status = "okay";
+    pinctrl-names = "default";
+    pinctrl-0 = <&mmc0_pins_a>, <&mmc0_cd_pin>;
+    vmmc-supply = <&reg_vcc3v3>;
+    bus-width = <4>;
+    cd-gpios = <&pio 5 6 GPIO_ACTIVE_HIGH>; /* PF6 */
+    cd-inverted;
+    status = "okay";
 };
 
 &uart0 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&uart0_pins_a>;
-	status = "okay";
+    pinctrl-names = "default";
+    pinctrl-0 = <&uart0_pins_a>;
+    status = "okay";
 };
 
 &usbphy {
-	/* USB VBUS is always on */
-	status = "okay";
+    /* USB VBUS is always on */
+    status = "okay";
 };

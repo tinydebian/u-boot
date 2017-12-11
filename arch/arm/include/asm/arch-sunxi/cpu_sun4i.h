@@ -18,6 +18,8 @@
 #define SUNXI_SRAM_D_BASE		0x00010000	/* 4 kiB */
 #define SUNXI_SRAM_B_BASE		0x00020000	/* 64 kiB (secure) */
 
+#define SUNXI_DE2_BASE			0x01000000
+
 #ifdef CONFIG_MACH_SUN8I_A83T
 #define SUNXI_CPUCFG_BASE		0x01700000
 #endif
@@ -32,7 +34,9 @@
 #define SUNXI_MS_BASE			0x01c07000
 #define SUNXI_TVD_BASE			0x01c08000
 #define SUNXI_CSI0_BASE			0x01c09000
+#ifndef CONFIG_MACH_SUNXI_H3_H5
 #define SUNXI_TVE0_BASE			0x01c0a000
+#endif
 #define SUNXI_EMAC_BASE			0x01c0b000
 #define SUNXI_LCD0_BASE			0x01c0C000
 #define SUNXI_LCD1_BASE			0x01c0d000
@@ -46,7 +50,9 @@
 #define SUNXI_USB1_BASE			0x01c14000
 #endif
 #define SUNXI_SS_BASE			0x01c15000
+#if !defined(CONFIG_MACH_SUNXI_H3_H5) && !defined(CONFIG_MACH_SUN50I)
 #define SUNXI_HDMI_BASE			0x01c16000
+#endif
 #define SUNXI_SPI2_BASE			0x01c17000
 #define SUNXI_SATA_BASE			0x01c18000
 #ifdef CONFIG_SUNXI_GEN_SUN4I
@@ -157,12 +163,24 @@ defined(CONFIG_MACH_SUN50I)
 /* module sram */
 #define SUNXI_SRAM_C_BASE		0x01d00000
 
+#ifndef CONFIG_MACH_SUN8I_H3
 #define SUNXI_DE_FE0_BASE		0x01e00000
+#else
+#define SUNXI_TVE0_BASE			0x01e00000
+#endif
 #define SUNXI_DE_FE1_BASE		0x01e20000
 #define SUNXI_DE_BE0_BASE		0x01e60000
+#ifndef CONFIG_MACH_SUN50I_H5
 #define SUNXI_DE_BE1_BASE		0x01e40000
+#else
+#define SUNXI_TVE0_BASE			0x01e40000
+#endif
 #define SUNXI_MP_BASE			0x01e80000
 #define SUNXI_AVG_BASE			0x01ea0000
+
+#if defined(CONFIG_MACH_SUNXI_H3_H5) || defined(CONFIG_MACH_SUN50I)
+#define SUNXI_HDMI_BASE			0x01ee0000
+#endif
 
 #define SUNXI_RTC_BASE			0x01f00000
 #define SUNXI_PRCM_BASE			0x01f01400
@@ -193,21 +211,6 @@ defined(CONFIG_MACH_SUN50I)
 #define SUNXI_SS_BOND_ID_A31S		5
 
 #ifndef __ASSEMBLY__
-#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN8I_H5_NANOPI)
-#define CPU_TYPE_H2_1	(0x42)
-#define CPU_TYPE_H2_2	(0x83)
-#define CPU_TYPE_H3_1	(0x00)
-#define CPU_TYPE_H3_2	(0x81)
-#define CPU_TYPE_H3D	(0x58)
-#define CPU_TYPE_H5  	(0x01)			// H5-CPUID=0x01? NOT reliable
-
-#define BOARD_TYPE_MAX  (6)
-#define BOARD_TYPE_NANOPI_NEO      (1)
-#define BOARD_TYPE_NANOPI_DUO      (4)
-#define BOARD_TYPE_NANOPI_NEO_CORE (5)
-
-int nanopi_spl_get_board(void);
-#endif
 void sunxi_board_init(void);
 void sunxi_reset(void);
 int sunxi_get_ss_bonding_id(void);

@@ -27,6 +27,7 @@
 #include <net.h>
 #endif
 #include <netdev.h>
+#include <asm/mach-types.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -259,9 +260,6 @@ int board_init(void)
 
 #ifdef CONFIG_CMD_USB
 	picosam9g45_usb_hw_init();
-#endif
-#ifdef CONFIG_HAS_DATAFLASH
-	at91_spi0_hw_init(1 << 0);
 #endif
 #ifdef CONFIG_ATMEL_SPI
 	at91_spi0_hw_init(1 << 4);

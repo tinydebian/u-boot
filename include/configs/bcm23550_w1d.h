@@ -81,15 +81,12 @@
 #define CONFIG_SYS_NS16550_COM1		0x3e000000
 
 /* must fit into GPT:u-boot-env partition */
-#define CONFIG_ENV_IS_IN_MMC
 #define CONFIG_SYS_MMC_ENV_DEV		0
 #define CONFIG_ENV_OFFSET		(0x00011a00 * 512)
 #define CONFIG_ENV_SIZE			(8 * 512)
 
 /* console configuration */
 #define CONFIG_SYS_CBSIZE		1024	/* Console buffer size */
-#define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE + \
-			sizeof(CONFIG_SYS_PROMPT) + 16)	/* Printbuffer size */
 #define CONFIG_SYS_MAXARGS		64
 #define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE
 
@@ -104,17 +101,11 @@
 #define CONFIG_CMDLINE_EDITING
 #define CONFIG_SYS_LONGHELP
 
-#define CONFIG_CRC32_VERIFY
 #define CONFIG_MX_CYCLIC
 
 /* Initial upstream - boot to cmd prompt only */
 #define CONFIG_BOOTCOMMAND		""
 
-/* Commands */
-#define CONFIG_FAT_WRITE
-
-#undef CONFIG_USB_GADGET_VBUS_DRAW
-#define CONFIG_USB_GADGET_VBUS_DRAW	0
 #define CONFIG_USBID_ADDR		0x34052c46
 
 #define CONFIG_SYS_ICACHE_OFF

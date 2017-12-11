@@ -24,7 +24,6 @@
  * Commands configuration
  */
 #define CONFIG_CMD_EXT2
-#define CONFIG_CMD_FAT
 
 /*
  * mv-plug-common.h should be defined after CMD configs since it used them
@@ -36,10 +35,7 @@
  *  Environment variables configurations
  */
 #ifdef CONFIG_SPI_FLASH
-#define CONFIG_ENV_IS_IN_SPI_FLASH	1
 #define CONFIG_ENV_SECT_SIZE		0x10000	/* 64k */
-#else
-#define CONFIG_ENV_IS_NOWHERE		1	/* if env in SDRAM */
 #endif
 
 #ifdef CONFIG_CMD_SF

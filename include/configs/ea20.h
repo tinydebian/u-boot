@@ -79,7 +79,6 @@
  * Network & Ethernet Configuration
  */
 #ifdef CONFIG_DRIVER_TI_EMAC
-#define CONFIG_EMAC_MDIO_PHY_NUM	0
 #define CONFIG_MII
 #define CONFIG_BOOTP_DNS
 #define CONFIG_BOOTP_DNS2
@@ -88,9 +87,6 @@
 #endif
 
 #ifdef CONFIG_USE_SPIFLASH
-#undef CONFIG_ENV_IS_IN_FLASH
-#undef CONFIG_ENV_IS_IN_NAND
-#define CONFIG_ENV_IS_IN_SPI_FLASH
 #define CONFIG_ENV_SIZE			(8 << 10)
 #define CONFIG_ENV_OFFSET		0x80000
 #define CONFIG_ENV_SECT_SIZE		(64 << 10)
@@ -109,14 +105,11 @@
  */
 #define CONFIG_BOOTFILE		"uImage" /* Boot file name */
 #define CONFIG_SYS_CBSIZE	1024 /* Console I/O Buffer Size	*/
-#define CONFIG_SYS_PBSIZE	(CONFIG_SYS_CBSIZE+sizeof(CONFIG_SYS_PROMPT)+16)
-#define CONFIG_SYS_MAXARGS	16 /* max number of command args */
 #define CONFIG_SYS_BARGSIZE	CONFIG_SYS_CBSIZE /* Boot Args Buffer Size */
 #define CONFIG_SYS_LOAD_ADDR	(PHYS_SDRAM_1 + 0x700000)
 #define CONFIG_AUTO_COMPLETE
 #define CONFIG_CMDLINE_EDITING
 #define CONFIG_SYS_LONGHELP
-#define CONFIG_CRC32_VERIFY
 #define CONFIG_MX_CYCLIC
 
 /*
@@ -125,12 +118,6 @@
 #define LINUX_BOOT_PARAM_ADDR	(PHYS_SDRAM_1 + 0x100)
 #define CONFIG_CMDLINE_TAG
 #define CONFIG_SETUP_MEMORY_TAGS
-
-/*
- * U-Boot commands
- */
-#define CONFIG_CMD_ENV
-#define CONFIG_CMD_SAVES
 
 #ifdef CONFIG_CMD_BDI
 #define CONFIG_CLOCKS
@@ -141,14 +128,8 @@
 
 /* NAND Setup */
 #ifdef CONFIG_SYS_USE_NAND
-#define CONFIG_CMD_NAND
-
-#define CONFIG_CMD_MTDPARTS
 #define CONFIG_MTD_DEVICE
 #define CONFIG_MTD_PARTITIONS
-#define CONFIG_LZO
-#define CONFIG_RBTREE
-#define CONFIG_CMD_UBIFS
 
 #define CONFIG_NAND_DAVINCI
 #define	CONFIG_SYS_NAND_PAGE_2K
@@ -168,9 +149,7 @@
 #if !defined(CONFIG_SYS_USE_NAND) && \
 	!defined(CONFIG_USE_NOR) && \
 	!defined(CONFIG_USE_SPIFLASH)
-#define CONFIG_ENV_IS_NOWHERE
 #define CONFIG_ENV_SIZE		(16 << 10)
-#undef CONFIG_CMD_ENV
 #endif
 
 /* additions for new relocation code, must added to all boards */
@@ -273,5 +252,7 @@
 		"else echo U-Boot not downloaded..exiting;fi\0"	\
 	"ubootupd_nand=echo run load_magic,run load_nand,run upd;\0"	\
 	"bootcmd=run net_testrfs\0"
+
+#include <asm/arch/hardware.h>
 
 #endif /* __CONFIG_H */
