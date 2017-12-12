@@ -733,6 +733,7 @@ char nanopi_board[][BOARD_NAME_LENGTH] = {
     "nanopi-neo-plus2",
     "nanopi-m1-plus2",
     "nanopi-k1-plus",
+    "nanopi-neo2-v1.1",
 };
 #if 0
 int nanopi_dram_clk[] = {
@@ -834,6 +835,15 @@ int nanopi_get_board(void)
 			extra_gpio = nanopi_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DISABLE);
 			if (extra_gpio == 0)
 				boardtype = BOARD_TYPE_NANOPI_K1_PLUS;
+			break;
+		}
+
+		// nanopi-neo2 or nanopi-neo2-v1.1
+		if (boardtype == BOARD_TYPE_NANOPI_NEO2) {
+			strcpy(pin[0], "PL3");
+			extra_gpio = nanopi_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DISABLE);
+			if (extra_gpio == 0)
+				boardtype = BOARD_TYPE_NANOPI_NEO2_V11;
 			break;
 		}
 		break;
