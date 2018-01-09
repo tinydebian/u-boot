@@ -831,9 +831,9 @@ int nanopi_get_board(void)
 		env_set("cpu", "h5");	// nowhere is using env-cpu=h5, so it doesn't matter.
 		// nanopi-m1-plus2 or nanopi-k1-plus
 		if (boardtype == BOARD_TYPE_NANOPI_M1_PLUS2) {
-			strcpy(pin[0], "PG12");
+			strcpy(pin[0], "PL5");
 			extra_gpio = nanopi_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DISABLE);
-			if (extra_gpio == 0)
+			if (extra_gpio == 1)
 				boardtype = BOARD_TYPE_NANOPI_K1_PLUS;
 			break;
 		}
