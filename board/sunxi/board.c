@@ -255,7 +255,8 @@ int board_init(void)
 			int power_failed = 0;
 			u8 data = SY8106A_VOUT1_1200MV; 	/* 1.20 V */
 			if (!strcmp(nanopi_board[npi_boardtype], "nanopi-neo-core2") 
-				|| !strcmp(nanopi_board[npi_boardtype], "nanopi-m1-plus2")) {
+				|| !strcmp(nanopi_board[npi_boardtype], "nanopi-m1-plus2")
+				|| !strcmp(nanopi_board[npi_boardtype], "nanopi-k1-plus")) {
 				struct udevice *i2c_dev;
 				int busnum = 5;
 				ret = i2c_get_chip_for_busnum(busnum, SY8106A_I2C_ADDR, 1, &i2c_dev);

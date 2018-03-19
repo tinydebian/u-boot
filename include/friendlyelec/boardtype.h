@@ -4,7 +4,7 @@
 #if defined(CONFIG_MACH_SUN8I_H3_NANOPI)
 #define BOARD_TYPE_MAX                    (7)
 #elif defined(CONFIG_MACH_SUN50I_H5_NANOPI)
-#define BOARD_TYPE_MAX                    (5)
+#define BOARD_TYPE_MAX                    (6)
 #endif
 
 #if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
@@ -29,7 +29,9 @@
 #define BOARD_TYPE_NANOPI_NEO2            (1)       // 01
 #define BOARD_TYPE_NANOPI_NEO_PLUS2       (2)       // 10
 #define BOARD_TYPE_NANOPI_M1_PLUS2        (3)       // 11
-#define BOARD_TYPE_NANOPI_K1_PLUS         (4)       // (PG12=0)11
+#define BOARD_TYPE_NANOPI_K1_PLUS         (4)       // 11-(PG12=0)
+#define BOARD_TYPE_NANOPI_NEO2_V11        (5)       // 01-(PL3=0)
+
 
 int nanopi_get_board(void);
 extern char nanopi_board[][32];
