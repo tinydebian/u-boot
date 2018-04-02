@@ -853,7 +853,7 @@ int nanopi_get_board(void)
 		// nanopi-neo or nanopi-neo-core ?
 		if (boardtype == BOARD_TYPE_NANOPI_NEO) {
 			strcpy(pin[0], "PC6");
-			extra_gpio = nanopi_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DOWN);; 
+			extra_gpio = nanopi_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DOWN);
 			switch (boot_source) {
 			case SUNXI_BOOTED_FROM_MMC0:
 				printf("Detecting eMMC...\n");
@@ -921,6 +921,18 @@ static int dram_set_clk(void)
 	// TODO
 	return 0;
 }
+
+static int turn_off_tft_bl(void)
+{
+	int pin = sunxi_name_to_gpio("PA0");
+	if (pin >= 0) {
+		gpio_request(pin, "tft_backlight");
+		gpio_direction_output(pin, 0);
+		gpio_free(pin);
+	}
+	return 0;
+}
+
 #endif
 
 static int run_main_loop(void)
@@ -1146,6 +1158,7 @@ static init_fnc_t init_sequence_r[] = {
 	print_sid,
 	setup_env_boardtype,
 	dram_set_clk,
+	turn_off_tft_bl,
 #endif
 	run_main_loop,
 };
