@@ -900,7 +900,7 @@ static int print_sid(void)
 
 	ret = sunxi_get_sid(sid);
 	if (ret == 0 && sid[0] != 0) {
-		printf("SID: %x-%x-%x-%x\n", sid[0], sid[1], sid[1], sid[2]);
+		printf("SID: %x-%x-%x-%x\n", sid[0], sid[1], sid[2], sid[3]);
 	}
 	return 0;
 }
@@ -1155,7 +1155,7 @@ static init_fnc_t init_sequence_r[] = {
 	prom_init,
 #endif
 #if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
-	print_sid,
+	// print_sid,
 	setup_env_boardtype,
 	dram_set_clk,
 	turn_off_tft_bl,
