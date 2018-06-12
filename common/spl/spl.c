@@ -349,7 +349,7 @@ static int boot_from_devices(struct spl_image_info *spl_image,
 #if defined(CONFIG_SPL_SERIAL_SUPPORT) && defined(CONFIG_SPL_LIBCOMMON_SUPPORT)
 		if (loader) {
 			printf("Trying to boot from %s\n", loader->name);
-#if defined(CONFIG_MACH_SUN50I_H5_NANOPI) || defined(CONFIG_MACH_SUN8I_H3_NANOPI)
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
 			printf("Boot device: ");
 			switch(spl_boot_list[i]) {
 				case BOOT_DEVICE_MMC1:

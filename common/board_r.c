@@ -707,13 +707,14 @@ static int initr_kbd(void)
 
 #if defined(CONFIG_MACH_SUN8I_H3_NANOPI)
 char nanopi_board[][BOARD_NAME_LENGTH] = {
-    "nanopi-m1",                    
-    "nanopi-neo",               
+    "nanopi-m1",
+    "nanopi-neo",
     "nanopi-neo-air",
     "nanopi-m1-plus",
     "nanopi-duo",
     "nanopi-neo-core",
     "nanopi-k1",
+    "nanopi-hero",
 };
 #if 0
 int nanopi_dram_clk[] = {
@@ -724,6 +725,7 @@ int nanopi_dram_clk[] = {
     408 /* NanoPi-Duo */,
     408 /* NanoPi-NEO-Core */,
     576 /* NanoPi-K1 */,
+    408 /* NanoPi-Hero */,
 };
 #endif
 #elif defined(CONFIG_MACH_SUN50I_H5_NANOPI)
@@ -880,6 +882,15 @@ int nanopi_get_board(void)
 			break;
 		}
 
+		// nanopi-m1 or nanopi-hero
+		if (boardtype == BOARD_TYPE_NANOPI_M1) {
+			strcpy(pin[0], "PL6");
+			extra_gpio = nanopi_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DISABLE);
+			if (extra_gpio == 0)
+				boardtype = BOARD_TYPE_NANOPI_HERO;
+			break;
+		}
+
 		break;
 	}	
 	if (boardtype>=0 && boardtype<BOARD_TYPE_MAX) {
@@ -893,6 +904,7 @@ int nanopi_get_board(void)
 #endif
 
 #if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
+#if 0
 static int print_sid(void)
 {
 	unsigned int sid[4];
@@ -904,6 +916,7 @@ static int print_sid(void)
 	}
 	return 0;
 }
+#endif
 int npi_boardtype = -1;
 static int setup_env_boardtype(void)
 {
