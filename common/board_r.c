@@ -911,8 +911,15 @@ int nanopi_get_board(void)
 			else {
 				strcpy(pin[0], "PL5");
 				extra_gpio = nanopi_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DISABLE);
-				if (extra_gpio == 1)
+				if (extra_gpio == 1) {
 					boardtype = BOARD_TYPE_NANOPI_R1;
+
+					int gmac_power = 32*3+6; // pd6
+					ret = gpio_request(gmac_power, "PD6");
+					if (!ret) {
+						gpio_direction_output(gmac_power, 1);
+					}
+				}
 			}
 			break;
 		}
