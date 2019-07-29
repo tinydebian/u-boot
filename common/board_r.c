@@ -717,6 +717,7 @@ char nanopi_board[][BOARD_NAME_LENGTH] = {
     "nanopi-hero",
     "nanopi-duo2",
     "nanopi-r1",
+    "nanopi-neo-s",
 };
 #if 0
 int nanopi_dram_clk[] = {
@@ -858,16 +859,11 @@ int nanopi_get_board(void)
 		if (boardtype == BOARD_TYPE_NANOPI_NEO) {
 			switch (boot_source) {
 			case SUNXI_BOOTED_FROM_MMC0:
-				printf("Detecting eMMC...\n");
-				has_emmc = !run_command("mmc dev 1", 0);
-				run_command("mmc dev 0", 0);
 				break;
 			case SUNXI_BOOTED_FROM_MMC2:
 				has_emmc = 1;
 				break;
 			}
-			printf("eMMC %s\n", has_emmc?"exist":"not exist");
-
 			if (has_emmc == 1) {
 				boardtype = BOARD_TYPE_NANOPI_NEO_CORE;
 				break;
@@ -892,12 +888,12 @@ int nanopi_get_board(void)
 			}
 		}
 
-		// nanopi-m1-plus or nanopi-k1
+		// nanopi-m1-plus or nanopi-neo-s
 		if (boardtype == BOARD_TYPE_NANOPI_M1_PLUS) {
-			strcpy(pin[0], "PD6");
+			strcpy(pin[0], "PC6");
 			extra_gpio = nanopi_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DISABLE);
-			if (extra_gpio == 1)
-				boardtype = BOARD_TYPE_NANOPI_K1;
+			if (extra_gpio == 0)
+				boardtype = BOARD_TYPE_NANOPI_NEO_S;
 			break;
 		}
 
