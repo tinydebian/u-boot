@@ -257,6 +257,7 @@ int board_init(void)
 			if (!strcmp(nanopi_board[npi_boardtype], "nanopi-neo-core2") 
 				|| !strcmp(nanopi_board[npi_boardtype], "nanopi-m1-plus2")
 				|| !strcmp(nanopi_board[npi_boardtype], "nanopi-k1-plus")
+				|| !strcmp(nanopi_board[npi_boardtype], "nanopi-neo2-black")
 				|| !strcmp(nanopi_board[npi_boardtype], "nanopi-hero")) {
 				struct udevice *i2c_dev;
 				int busnum = 5;
