@@ -718,6 +718,7 @@ char nanopi_board[][BOARD_NAME_LENGTH] = {
     "nanopi-duo2",
     "nanopi-r1",
     "nanopi-neo-s",
+    "zeropi",
 };
 #if 0
 int nanopi_dram_clk[] = {
@@ -888,7 +889,13 @@ int nanopi_get_board(void)
 					boardtype = BOARD_TYPE_NANOPI_NEO_CORE;
 				break;
 			} else {
-				boardtype = BOARD_TYPE_NANOPI_NEO;
+				strcpy(pin[0], "PE7");
+				extra_gpio = nanopi_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DOWN);
+				if (extra_gpio == 1) {
+					boardtype = BOARD_TYPE_ZEROPI;
+				} else {
+					boardtype = BOARD_TYPE_NANOPI_NEO;
+				}
 			}
 		}
 
