@@ -242,7 +242,7 @@ int board_init(void)
 #define SY8106A_I2C_ADDR 0x65
 #define SY8106A_VOUT1_SEL 1
 #define SY8106A_VOUT1_SEL_ENABLE (1 << 7)
-#define SY8106A_VOUT1_1200MV	    ((1200-680)/10 | SY8106A_VOUT1_SEL_ENABLE)
+#define SY8106A_VOUT1_1280MV	    ((1280-680)/10 | SY8106A_VOUT1_SEL_ENABLE)
 	int npi_boardtype = nanopi_get_board();
 	int i = 0;
 	if (nanopi_board[npi_boardtype][0] == '\0') {
@@ -253,7 +253,7 @@ int board_init(void)
 		if (clock_get_pll1() < CONFIG_SYS_CLK_FREQ) {
 			int ret = -1;
 			int power_failed = 0;
-			u8 data = SY8106A_VOUT1_1200MV; 	/* 1.20 V */
+			u8 data = SY8106A_VOUT1_1280MV;
 			if (!strcmp(nanopi_board[npi_boardtype], "nanopi-neo-core2") 
 				|| !strcmp(nanopi_board[npi_boardtype], "nanopi-m1-plus2")
 				|| !strcmp(nanopi_board[npi_boardtype], "nanopi-k1-plus")
@@ -276,7 +276,7 @@ int board_init(void)
 					printf("%s: fail to i2c_read sy8106a", __func__);
 				}
 				printf("Sy8106a: %dmv\n", (data & ~(SY8106A_VOUT1_SEL_ENABLE)) * 10 + 680);
-				if (data != SY8106A_VOUT1_1200MV) 
+				if (data != SY8106A_VOUT1_1280MV) 
 					power_failed = 1;
 				else
 					power_failed = 0;
