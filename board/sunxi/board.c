@@ -730,6 +730,7 @@ static void setup_environment(const void *fdt)
 	unsigned int sid[4];
 	uint8_t mac_addr[6];
 	char ethaddr[16];
+	char buf[ARP_HLEN_ASCII + 1];
 	int i, ret;
 
 	ret = sunxi_get_sid(sid);
@@ -765,8 +766,8 @@ static void setup_environment(const void *fdt)
 			else
 				sprintf(ethaddr, "eth%daddr", i);
 
-			if (env_get(ethaddr))
-				continue;
+			// if (env_get(ethaddr))
+			// 	continue;
 
 			/* Non OUI / registered MAC address */
 			mac_addr[0] = (i << 4) | 0x02;
@@ -776,7 +777,8 @@ static void setup_environment(const void *fdt)
 			mac_addr[4] = (sid[3] >>  8) & 0xff;
 			mac_addr[5] = (sid[3] >>  0) & 0xff;
 
-			eth_env_set_enetaddr(ethaddr, mac_addr);
+			sprintf(buf, "%pM", mac_addr);
+			env_set(ethaddr, buf);
 #if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
 			char mac_node[32];
 			sprintf(mac_node, "[%x %x %x %x %x %x]", \
@@ -792,12 +794,10 @@ static void setup_environment(const void *fdt)
 #endif
 		}
 
-		if (!env_get("serial#")) {
-			snprintf(serial_string, sizeof(serial_string),
-				"%08x%08x", sid[0], sid[3]);
+		snprintf(serial_string, sizeof(serial_string),
+			"%08x%08x", sid[0], sid[3]);
 
-			env_set("serial#", serial_string);
-		}
+		env_set("serial#", serial_string);
 	}
 }
 

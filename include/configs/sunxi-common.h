@@ -151,6 +151,7 @@
 
 #if defined(CONFIG_ENV_IS_IN_MMC)
 #if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
+#define CONFIG_ENV_OVERWRITE
 #define CONFIG_SYS_MMC_ENV_DEV		0	/* first detected MMC controller */
 #else
 #if CONFIG_MMC_SUNXI_SLOT_EXTRA != -1
