@@ -878,7 +878,7 @@ int nanopi_get_board(void)
 				if (extra_gpio == 1) {
 					boardtype = BOARD_TYPE_NANOPI_R1;
 				} else {
-					boardtype = BOARD_TYPE_NANOPI_R1S;
+					boardtype = BOARD_TYPE_NANOPI_R1S_H3;
 				}
 				break;
 			} else {
