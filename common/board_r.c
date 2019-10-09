@@ -836,26 +836,57 @@ int nanopi_get_board(void)
 	case CPU_TYPE_H5:			// don't really rely on this(H5-CPUID=0x01?)
 		boardtype = nanopi_read_gpio();
 		env_set("cpu", "h5");	// nowhere is using env-cpu=h5, so it doesn't matter.
-		// nanopi-m1-plus2 or nanopi-k1-plus
-		if (boardtype == BOARD_TYPE_NANOPI_M1_PLUS2) {
-			strcpy(pin[0], "PL5");
-			extra_gpio = nanopi_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DISABLE);
-			if (extra_gpio == 1)
-				boardtype = BOARD_TYPE_NANOPI_K1_PLUS;
+
+		/*
+		 * variant 0
+		 * 1. nanopi-neo-core2
+		 */
+		if (boardtype == BOARD_TYPE_H5_VARIANT0) {
+			boardtype = BOARD_TYPE_NANOPI_NEO_CORE2;
 			break;
 		}
 
-		// nanopi-neo2 or nanopi-neo2-v1.1
-		if (boardtype == BOARD_TYPE_NANOPI_NEO2) {
+		/*
+		 * variant 1
+		 * 1. nanopi-neo2,  PL3=1
+		 * 2. nanopi-neo2-v1.1,  PL3=0, PE4=0
+		 * 3. nanopi-neo2-black, PL3=0, PE4=1
+		 */
+		if (boardtype == BOARD_TYPE_H5_VARIANT1) {
 			strcpy(pin[0], "PL3");
 			extra_gpio = nanopi_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DISABLE);
 			if (extra_gpio == 0) {
 				strcpy(pin[0], "PE4");
 				extra_gpio = nanopi_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DISABLE);
-				boardtype = extra_gpio == 0 ? BOARD_TYPE_NANOPI_NEO2_V11 : BOARD_TYPE_NANOPI_NEO2_BLACK;
+				boardtype = (extra_gpio == 0 ? BOARD_TYPE_NANOPI_NEO2_V11 : BOARD_TYPE_NANOPI_NEO2_BLACK);
+			} else {
+				boardtype = BOARD_TYPE_NANOPI_NEO2;
 			}
 			break;
 		}
+
+		/*
+		 * variant 2
+		 * 1. nanopi-neo-core2
+		 */
+		if (boardtype == BOARD_TYPE_H5_VARIANT2) {
+			boardtype = BOARD_TYPE_NANOPI_NEO_PLUS2;
+			break;
+		}
+
+		/*
+		 * variant 3
+		 * 1. nanopi-m1-plus2,  PL5=0,
+		 * 2. nanopi-k1-plus,  PL5=1
+		 */
+		// nanopi-m1-plus2 or nanopi-k1-plus
+		if (boardtype == BOARD_TYPE_H5_VARIANT3) {
+			strcpy(pin[0], "PL5");
+			extra_gpio = nanopi_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DISABLE);
+			boardtype = (extra_gpio == 0 ? BOARD_TYPE_NANOPI_M1_PLUS2 : BOARD_TYPE_NANOPI_K1_PLUS);
+			break;
+		}
+
 		break;
 	default:					// dafault is H3.boot.src will use env-cpu=h3
 		boardtype = nanopi_read_gpio();
@@ -936,6 +967,7 @@ int nanopi_get_board(void)
 		 * 1. nanopi-neo-air
 		 */
 		if (boardtype == BOARD_TYPE_H3_VARIANT2) {
+			boardtype = BOARD_TYPE_NANOPI_NEO_AIR;
 			break;
 		}
 

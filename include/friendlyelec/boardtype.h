@@ -31,6 +31,11 @@
 #define BOARD_TYPE_NANOPI_R1S_H3          (12)
 
 
+#define BOARD_TYPE_H5_VARIANT0            (0) // = NEO-CORE2
+#define BOARD_TYPE_H5_VARIANT1            (1) // = NEO2
+#define BOARD_TYPE_H5_VARIANT2            (2) // = NEO-PLUS2
+#define BOARD_TYPE_H5_VARIANT3            (3) // = M1-PLUS2
+
 #define BOARD_TYPE_NANOPI_NEO_CORE2       (0)       // 00
 #define BOARD_TYPE_NANOPI_NEO2            (1)       // 01
 #define BOARD_TYPE_NANOPI_NEO_PLUS2       (2)       // 10
