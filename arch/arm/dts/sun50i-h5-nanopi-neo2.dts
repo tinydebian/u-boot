@@ -53,6 +53,9 @@
 
 	aliases {
 		serial0 = &uart0;
+		i2c0 = &i2c0;
+		i2c1 = &i2c1;
+		i2c2 = &i2c2;
 		i2c5 = &r_i2c;
 	};
 

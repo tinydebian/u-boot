@@ -742,6 +742,7 @@ char nanopi_board[][BOARD_NAME_LENGTH] = {
     "nanopi-k1-plus",
     "nanopi-neo2-v1.1",
     "nanopi-neo2-black",
+    "nanopi-r1s",
 };
 #if 0
 int nanopi_dram_clk[] = {
@@ -839,10 +840,13 @@ int nanopi_get_board(void)
 
 		/*
 		 * variant 0
-		 * 1. nanopi-neo-core2
+		 * 1. nanopi-neo-core2, PC6=1
+		 * 1. nanopi-r1s, PC6=0
 		 */
 		if (boardtype == BOARD_TYPE_H5_VARIANT0) {
-			boardtype = BOARD_TYPE_NANOPI_NEO_CORE2;
+			strcpy(pin[0], "PC6");
+			extra_gpio = nanopi_read_extra_gpio(pin, 1, SUNXI_GPIO_PULL_DISABLE);
+			boardtype = (extra_gpio == 0 ? BOARD_TYPE_NANOPI_R1S_H5 : BOARD_TYPE_NANOPI_NEO_CORE2);
 			break;
 		}
 
@@ -867,7 +871,7 @@ int nanopi_get_board(void)
 
 		/*
 		 * variant 2
-		 * 1. nanopi-neo-core2
+		 * 1. nanopi-neo-plus2
 		 */
 		if (boardtype == BOARD_TYPE_H5_VARIANT2) {
 			boardtype = BOARD_TYPE_NANOPI_NEO_PLUS2;

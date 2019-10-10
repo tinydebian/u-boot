@@ -317,6 +317,7 @@ unsigned int i2c_get_bus_num(void);
  */
 int i2c_set_bus_num(unsigned int bus);
 
+#if !(defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI))
 static inline void I2C_SET_BUS(unsigned int bus)
 {
 	i2c_set_bus_num(bus);
@@ -326,6 +327,7 @@ static inline unsigned int I2C_GET_BUS(void)
 {
 	return i2c_get_bus_num();
 }
+#endif
 
 /**
  * i2c_init() - Compatibility function for driver model

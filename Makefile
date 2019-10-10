@@ -858,11 +858,13 @@ cmd_cfgcheck = $(srctree)/scripts/check-config.sh $2 \
 
 all:		$(ALL-y) cfg
 ifeq ($(CONFIG_DM_I2C_COMPAT)$(CONFIG_SANDBOX),y)
+ifeq ($(CONFIG_MACH_SUN50I_H5_NANOPI)$(CONFIG_MACH_SUN8I_H3_NANOPI),)
 	@echo "===================== WARNING ======================"
 	@echo "This board uses CONFIG_DM_I2C_COMPAT. Please remove"
 	@echo "(possibly in a subsequent patch in your series)"
 	@echo "before sending patches to the mailing list."
 	@echo "===================================================="
+endif
 endif
 	@# Check that this build does not use CONFIG options that we do not
 	@# know about unless they are in Kconfig. All the existing CONFIG

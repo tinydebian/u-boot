@@ -43,11 +43,12 @@
 #define BOARD_TYPE_NANOPI_K1_PLUS         (4)       // 11-(PG12=0)
 #define BOARD_TYPE_NANOPI_NEO2_V11        (5)       // 01-(PL3=0)
 #define BOARD_TYPE_NANOPI_NEO2_BLACK      (6)
+#define BOARD_TYPE_NANOPI_R1S_H5          (7)
 
 #if defined(CONFIG_MACH_SUN8I_H3_NANOPI)
 #define BOARD_TYPE_MAX                    (BOARD_TYPE_NANOPI_R1S_H3+1)
 #elif defined(CONFIG_MACH_SUN50I_H5_NANOPI)
-#define BOARD_TYPE_MAX                    (BOARD_TYPE_NANOPI_NEO2_BLACK+1)
+#define BOARD_TYPE_MAX                    (BOARD_TYPE_NANOPI_R1S_H5+1)
 #endif
 
 

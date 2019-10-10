@@ -35,6 +35,7 @@
 #include <spl.h>
 #include <sy8106a.h>
 #include <asm/setup.h>
+#include <i2c.h>
 
 #if defined CONFIG_VIDEO_LCD_PANEL_I2C && !(defined CONFIG_SPL_BUILD)
 /* So that we can use pin names in Kconfig and sunxi_name_to_gpio() */
@@ -82,7 +83,11 @@ DECLARE_GLOBAL_DATA_PTR;
 void i2c_init_board(void)
 {
 #ifdef CONFIG_I2C0_ENABLE
-#if defined(CONFIG_MACH_SUN4I) || \
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
+	clock_twi_onoff(0, 1);
+	sunxi_gpio_set_cfgpin(SUNXI_GPA(11), SUN8I_H3_GPA_TWI0);
+	sunxi_gpio_set_cfgpin(SUNXI_GPA(12), SUN8I_H3_GPA_TWI0);
+#elif defined(CONFIG_MACH_SUN4I) || \
     defined(CONFIG_MACH_SUN5I) || \
     defined(CONFIG_MACH_SUN7I) || \
     defined(CONFIG_MACH_SUN8I_R40)
@@ -101,7 +106,11 @@ void i2c_init_board(void)
 #endif
 
 #ifdef CONFIG_I2C1_ENABLE
-#if defined(CONFIG_MACH_SUN4I) || \
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
+	clock_twi_onoff(1, 1);
+	sunxi_gpio_set_cfgpin(SUNXI_GPA(18), SUN8I_H3_GPA_TWI1);
+	sunxi_gpio_set_cfgpin(SUNXI_GPA(19), SUN8I_H3_GPA_TWI1);
+#elif defined(CONFIG_MACH_SUN4I) || \
     defined(CONFIG_MACH_SUN7I) || \
     defined(CONFIG_MACH_SUN8I_R40)
 	sunxi_gpio_set_cfgpin(SUNXI_GPB(18), SUN4I_GPB_TWI1);
@@ -123,7 +132,11 @@ void i2c_init_board(void)
 #endif
 
 #ifdef CONFIG_I2C2_ENABLE
-#if defined(CONFIG_MACH_SUN4I) || \
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
+	clock_twi_onoff(2, 1);
+	sunxi_gpio_set_cfgpin(SUNXI_GPE(12), SUN8I_H3_GPE_TWI2);
+	sunxi_gpio_set_cfgpin(SUNXI_GPE(13), SUN8I_H3_GPE_TWI2);
+#elif defined(CONFIG_MACH_SUN4I) || \
     defined(CONFIG_MACH_SUN7I) || \
     defined(CONFIG_MACH_SUN8I_R40)
 	sunxi_gpio_set_cfgpin(SUNXI_GPB(20), SUN4I_GPB_TWI2);
@@ -237,7 +250,6 @@ int board_init(void)
 #ifndef CONFIG_SPL_BUILD
 #if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
 #include <friendlyelec/boardtype.h>
-#include <i2c.h>
 
 #define SY8106A_I2C_ADDR 0x65
 #define SY8106A_VOUT1_SEL 1
@@ -728,10 +740,11 @@ static void setup_environment(const void *fdt)
 {
 	char serial_string[17] = { 0 };
 	unsigned int sid[4];
-	uint8_t mac_addr[6];
+	uchar mac_addr[6];
 	char ethaddr[16];
 	char buf[ARP_HLEN_ASCII + 1];
 	int i, ret;
+	int eeprom_mac = 0;
 
 	ret = sunxi_get_sid(sid);
 	if (ret == 0 && sid[0] != 0) {
@@ -766,34 +779,46 @@ static void setup_environment(const void *fdt)
 			else
 				sprintf(ethaddr, "eth%daddr", i);
 
+			/* System on tfcard may run in different board
+			 * So we should setup ethaddr in every bootup.
+			 */
 			// if (env_get(ethaddr))
 			// 	continue;
 
-			/* Non OUI / registered MAC address */
-			mac_addr[0] = (i << 4) | 0x02;
-			mac_addr[1] = (sid[0] >>  0) & 0xff;
-			mac_addr[2] = (sid[3] >> 24) & 0xff;
-			mac_addr[3] = (sid[3] >> 16) & 0xff;
-			mac_addr[4] = (sid[3] >>  8) & 0xff;
-			mac_addr[5] = (sid[3] >>  0) & 0xff;
+			memset(mac_addr, 0, sizeof(mac_addr));
+			/* EEPROM is at bus 0. */
+			ret = i2c_set_bus_num(0);
+			if (!ret) {
+				ret = eeprom_read(0x51, 0xfa, mac_addr, sizeof(mac_addr));
+				if (!ret) {
+					eeprom_mac = 1;
+				}
+			}
+
+			if (eeprom_mac == 0) {
+				/* Non OUI / registered MAC address */
+				mac_addr[0] = (i << 4) | 0x02;
+				mac_addr[1] = (sid[0] >>  0) & 0xff;
+				mac_addr[2] = (sid[3] >> 24) & 0xff;
+				mac_addr[3] = (sid[3] >> 16) & 0xff;
+				mac_addr[4] = (sid[3] >>  8) & 0xff;
+				mac_addr[5] = (sid[3] >>  0) & 0xff;
+			}
 
 			sprintf(buf, "%pM", mac_addr);
-			env_set(ethaddr, buf);
-#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
-			char mac_node[32];
-			sprintf(mac_node, "[%x %x %x %x %x %x]", \
-								mac_addr[0], mac_addr[1], \
-								mac_addr[2], mac_addr[3], \
-								mac_addr[4], mac_addr[5]);
-			env_set("mac_node", mac_node);
-			sprintf(mac_node, "[%x %x %x %x %x %x]", \
-					mac_addr[0], mac_addr[5], \
-					mac_addr[4], mac_addr[3], \
-					mac_addr[2], mac_addr[1]);
-			env_set("wifi_mac_node", mac_node);
-#endif
+			/* Linux kernel will get ethaddr from U-boot*/
+			if (is_valid_ethaddr(mac_addr))
+				env_set(ethaddr, buf);
 		}
-
+#if defined(CONFIG_MACH_SUN8I_H3_NANOPI) || defined(CONFIG_MACH_SUN50I_H5_NANOPI)
+		/* for WiFi module without MAC address, like XR819 */
+		char mac_node[32];
+		sprintf(mac_node, "[%x %x %x %x %x %x]", \
+				0x02, mac_addr[5], \
+				mac_addr[4], mac_addr[3], \
+				mac_addr[2], mac_addr[1]);
+		env_set("wifi_mac_node", mac_node);
+#endif
 		snprintf(serial_string, sizeof(serial_string),
 			"%08x%08x", sid[0], sid[3]);
 
