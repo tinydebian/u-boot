@@ -744,7 +744,6 @@ static void setup_environment(const void *fdt)
 	char ethaddr[16];
 	char buf[ARP_HLEN_ASCII + 1];
 	int i, ret;
-	int eeprom_mac = 0;
 
 	ret = sunxi_get_sid(sid);
 	if (ret == 0 && sid[0] != 0) {
@@ -790,19 +789,15 @@ static void setup_environment(const void *fdt)
 			ret = i2c_set_bus_num(0);
 			if (!ret) {
 				ret = eeprom_read(0x51, 0xfa, mac_addr, sizeof(mac_addr));
-				if (!ret) {
-					eeprom_mac = 1;
+				if (ret || !is_valid_ethaddr(mac_addr)) {
+					/* Non OUI / registered MAC address */
+					mac_addr[0] = (i << 4) | 0x02;
+					mac_addr[1] = (sid[0] >>  0) & 0xff;
+					mac_addr[2] = (sid[3] >> 24) & 0xff;
+					mac_addr[3] = (sid[3] >> 16) & 0xff;
+					mac_addr[4] = (sid[3] >>  8) & 0xff;
+					mac_addr[5] = (sid[3] >>  0) & 0xff;
 				}
-			}
-
-			if (eeprom_mac == 0) {
-				/* Non OUI / registered MAC address */
-				mac_addr[0] = (i << 4) | 0x02;
-				mac_addr[1] = (sid[0] >>  0) & 0xff;
-				mac_addr[2] = (sid[3] >> 24) & 0xff;
-				mac_addr[3] = (sid[3] >> 16) & 0xff;
-				mac_addr[4] = (sid[3] >>  8) & 0xff;
-				mac_addr[5] = (sid[3] >>  0) & 0xff;
 			}
 
 			sprintf(buf, "%pM", mac_addr);
