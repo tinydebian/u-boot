@@ -1174,6 +1174,11 @@ config CMD_UUID
 	  The two commands are very similar except for the endianness of the
 	  output.
 
+config CMD_OVERLAY
+	bool "overlay - overlay helper command"
+	help
+	  FriendlyElec overlay helper command
+
 endmenu
 
 config CMD_BOOTSTAGE
